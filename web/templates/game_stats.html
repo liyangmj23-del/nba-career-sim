@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% block title %}数据 · {{ player.full_name }}{% endblock %}
+{% block nav_extra %}
+<div class="nav-center"><span class="nav-player">{{ player.full_name }}</span> · 数据中心</div>
+<div class="nav-right"><a class="btn btn-ghost btn-sm" href="/game/{{ save.save_id }}">← 返回游戏</a></div>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- Tab 导航 -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('gamelog',this)">逐场数据</button>
+    <button class="tab-btn" onclick="switchTab('season',this)">赛季统计</button>
+    <button class="tab-btn" onclick="switchTab('boxscore',this)">比赛看板</button>
+    <button class="tab-btn" onclick="switchTab('events',this)">事件历史</button>
+    <button class="tab-btn" onclick="switchTab('awards',this)">荣誉</button>
+    <button class="tab-btn" onclick="switchTab('history',this)">历史地位</button>
+  </div>
+
+  <!-- ── 逐场数据 ── -->
+  <div class="tab-content active" id="tab-gamelog">
+    {% if games %}
+    <!-- 图表 -->
+    <div class="charts-row">
+      <div class="chart-box">
+        <div class="chart-title">得分趋势</div>
+        <canvas id="pts-chart" height="160"></canvas>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">篮板 / 助攻</div>
+        <canvas id="reb-ast-chart" height="160"></canvas>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">断 / 帽</div>
+        <canvas id="stl-blk-chart" height="160"></canvas>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th>周</th><th>场</th><th>主/客</th><th>对手</th><th>胜负</th>
+          <th>分</th><th>篮</th><th>助</th><th>断</th><th>帽</th><th>失</th>
+          <th>FG</th><th>FG%</th><th>3P</th><th>3P%</th><th>FT</th><th>FT%</th><th>+/-</th>
+          <th>看板</th>
+        </tr></thead>
+        <tbody>
+          {% for g in games %}
+          <tr>
+            <td>第{{ g.week }}周</td><td>G{{ g.gnum }}</td>
+            <td class="{{ 'home' if g.home else 'away' }}">{{ '主' if g.home else '客' }}</td>
+            <td><b>{{ g.opp }}</b></td>
+            <td class="{{ 'win' if g.won else 'loss' }}">{{ 'W' if g.won else 'L' }}</td>
+            <td class="{{ 'pts-high' if g.pts >= 30 else ('pts-low' if g.pts <= 8 else '') }}"><b>{{ g.pts }}</b></td>
+            <td>{{ g.reb }}</td><td>{{ g.ast }}</td><td>{{ g.stl }}</td><td>{{ g.blk }}</td><td>{{ g.tov }}</td>
+            <td>{{ g.fgm }}/{{ g.fga }}</td><td>{{ g.fg_pct }}%</td>
+            <td>{{ g.fg3m }}/{{ g.fg3a }}</td><td>{{ g.fg3_pct }}%</td>
+            <td>{{ g.ftm }}/{{ g.fta }}</td><td>{{ g.ft_pct }}%</td>
+            <td class="{{ 'pos-pm' if g.pm > 0 else 'neg-pm' }}">{{ '+' if g.pm > 0 else '' }}{{ g.pm }}</td>
+            <td><button class="btn btn-tiny" onclick="loadBoxScore({{ g.gnum }})">查看</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-hint">暂无比赛记录，请先推进赛季</div>
+    {% endif %}
+  </div>
+
+  <!-- ── 赛季统计 ── -->
+  <div class="tab-content" id="tab-season">
+    <div class="tbl-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th>赛季</th><th>场次</th><th>得分</th><th>篮板</th><th>助攻</th>
+          <th>抢断</th><th>盖帽</th><th>失误</th><th>FG%</th><th>3P%</th><th>FT%</th>
+        </tr></thead>
+        <tbody>
+          {% for s in season_rows %}
+          <tr>
+            <td>{{ s.year-1 }}-{{ (s.year|string)[2:] }}</td>
+            <td>{{ s.gp }}</td>
+            <td class="cyan"><b>{{ s.pts }}</b></td>
+            <td>{{ s.reb }}</td><td>{{ s.ast }}</td>
+            <td>{{ s.stl }}</td><td>{{ s.blk }}</td><td>{{ s.tov }}</td>
+            <td>{{ s.fg }}%</td><td>{{ s.fg3 }}%</td><td>{{ s.ft }}%</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="11" class="empty-hint">暂无赛季数据</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 比赛看板 ── -->
+  <div class="tab-content" id="tab-boxscore">
+    <div class="boxscore-select-row">
+      <select id="game-select" onchange="loadBoxScore(this.value)">
+        <option value="">选择比赛场次...</option>
+        {% for g in games %}
+        <option value="{{ g.gnum }}">G{{ g.gnum }} 第{{ g.week }}周 vs {{ g.opp }} ({{ 'W' if g.won else 'L' }} {{ g.pts }}分)</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div id="boxscore-container"></div>
+  </div>
+
+  <!-- ── 事件历史 ── -->
+  <div class="tab-content" id="tab-events">
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterEvents('all',this)">全部</button>
+      <button class="filter-btn" onclick="filterEvents('game_performance',this)">比赛</button>
+      <button class="filter-btn" onclick="filterEvents('injury',this)">伤病</button>
+      <button class="filter-btn" onclick="filterEvents('team_chemistry',this)">球队</button>
+      <button class="filter-btn" onclick="filterEvents('career_milestones',this)">里程碑</button>
+      <button class="filter-btn" onclick="filterEvents('off_court',this)">场外</button>
+    </div>
+    <div class="event-list" id="event-list">
+      {% set cat_map = {'game_performance':'比赛','injury':'伤病','personal_life':'个人','team_chemistry':'球队','career_milestones':'里程碑','off_court':'场外'} %}
+      {% for e in events %}
+      <div class="event-card {{ e.severity }}" data-cat="{{ e.category }}">
+        <div class="ec-meta">第{{ e.week_number }}周 · {{ cat_map.get(e.category,'') }}</div>
+        <div class="ec-title">{{ e.title }}</div>
+        <div class="ec-text">{{ e.narrative_text[:400] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── 荣誉 ── -->
+  <div class="tab-content" id="tab-awards">
+    {% if awards %}
+    <div class="awards-grid">
+      {% for a in awards %}
+      <div class="award-card">
+        <div class="award-year">{{ a.year-1 }}-{{ (a.year|string)[2:] }}</div>
+        <div class="award-desc">{{ a.desc }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-hint">暂无荣誉记录，继续推进赛季</div>
+    {% endif %}
+  </div>
+
+  <!-- ── 历史地位 ── -->
+  <div class="tab-content" id="tab-history">
+    {% set h = history %}
+    <div class="history-header">
+      <div class="history-tier">{{ h.tier }}</div>
+      <div class="history-score">HOF 积分：{{ h.hof_score|round|int }}</div>
+      <div class="history-meta">{{ h.totals.seasons }} 赛季 / {{ h.totals.games }} 场 &nbsp;·&nbsp;
+        生涯场均 {{ h.totals.avg_pts }}分 {{ h.totals.avg_reb }}篮 {{ h.totals.avg_ast }}助</div>
+    </div>
+    <div class="comp-grid">
+      {% for c in h.comparisons %}
+      {% set pct = c.pct %}
+      {% set col = '#ffc107' if pct >= 100 else ('#4dc3ff' if pct >= 70 else '#94a3b8') %}
+      <div class="comp-card">
+        <div class="comp-label">{{ c.label }}</div>
+        <div class="comp-val" style="color:{{ col }}">{{ '{:,}'.format(c.value) }}</div>
+        <div class="comp-bar-wrap"><div class="comp-bar" style="width:{{ [pct,100]|min }}%;background:{{ col }}"></div></div>
+        <div class="comp-sub">{{ c.holder }} · {{ pct }}%</div>
+        {% if c.status %}<div class="comp-status" style="color:{{ col }}">{{ c.status }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% if h.milestones %}
+    <div class="milestones-list">
+      {% for m in h.milestones %}
+      <div class="milestone-item">★ {{ m }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+</div><!-- /page-wrap -->
+
+<div class="box-modal-overlay" id="box-modal-overlay" style="display:none" onclick="closeBoxModal()">
+  <div class="box-modal" onclick="event.stopPropagation()" id="box-modal-inner"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SAVE_ID = {{ save.save_id }};
+const gameLogData = {{ games | tojson }};
+
+// 图表
+if (gameLogData.length > 0) {
+  const labels = gameLogData.map(g => `G${g.gnum}`);
+  const chartDefaults = {
+    options: {
+      plugins: { legend: { labels: { color:'#94a3b8', font:{size:11} } } },
+      scales: {
+        x: { ticks:{color:'#64748b',font:{size:10}}, grid:{color:'rgba(30,32,64,.5)'} },
+        y: { ticks:{color:'#64748b',font:{size:10}}, grid:{color:'rgba(30,32,64,.5)'} }
+      }
+    }
+  };
+  new Chart(document.getElementById('pts-chart'), {
+    type:'line', ...chartDefaults,
+    data:{ labels, datasets:[{ label:'得分', data:gameLogData.map(g=>g.pts),
+      borderColor:'#4dc3ff', backgroundColor:'rgba(77,195,255,.1)',
+      borderWidth:2, fill:true, tension:0.3, pointRadius:3 }] }
+  });
+  new Chart(document.getElementById('reb-ast-chart'), {
+    type:'line', ...chartDefaults,
+    data:{ labels, datasets:[
+      {label:'篮板',data:gameLogData.map(g=>g.reb),borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.1)',borderWidth:2,fill:true,tension:0.3,pointRadius:3},
+      {label:'助攻',data:gameLogData.map(g=>g.ast),borderColor:'#eab308',backgroundColor:'rgba(234,179,8,.05)',borderWidth:2,fill:false,tension:0.3,pointRadius:3}
+    ]}
+  });
+  new Chart(document.getElementById('stl-blk-chart'), {
+    type:'line', ...chartDefaults,
+    data:{ labels, datasets:[
+      {label:'抢断',data:gameLogData.map(g=>g.stl),borderColor:'#a855f7',backgroundColor:'rgba(168,85,247,.1)',borderWidth:2,fill:true,tension:0.3,pointRadius:3},
+      {label:'盖帽',data:gameLogData.map(g=>g.blk),borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.05)',borderWidth:2,fill:false,tension:0.3,pointRadius:3}
+    ]}
+  });
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function filterEvents(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.event-card').forEach(el => {
+    el.style.display = (cat === 'all' || el.dataset.cat === cat) ? '' : 'none';
+  });
+}
+
+async function loadBoxScore(gnum) {
+  if (!gnum) return;
+  const resp = await fetch(`/game/${SAVE_ID}/box/${gnum}`);
+  const data = await resp.json();
+  if (data.error) return;
+  document.getElementById('game-select').value = gnum;
+
+  const html = renderBoxScore(data);
+  const boxContainer = document.getElementById('boxscore-container');
+  if (boxContainer) boxContainer.innerHTML = html;
+
+  // 也可以弹出模态
+  document.getElementById('box-modal-inner').innerHTML = html;
+  document.getElementById('box-modal-overlay').style.display = 'flex';
+}
+
+function closeBoxModal() {
+  document.getElementById('box-modal-overlay').style.display = 'none';
+}
+
+function renderBoxScore(data) {
+  const renderTeam = (team) => {
+    const scoreCol = team.won ? '#22c55e' : '#ef4444';
+    const rows = team.players.map(p => {
+      const heroClass = p.is_hero ? 'hero-row' : '';
+      const fgPct = p.fga ? (p.fgm/p.fga*100).toFixed(0)+'%' : '-';
+      const fg3Pct = p.fg3a ? (p.fg3m/p.fg3a*100).toFixed(0)+'%' : '-';
+      const ftPct = p.fta ? (p.ftm/p.fta*100).toFixed(0)+'%' : '-';
+      const pm = p.pm > 0 ? '+'+p.pm : p.pm;
+      const ptsClass = p.pts >= 25 ? 'pts-high' : (p.pts <= 5 ? 'pts-low' : '');
+      const name = p.is_hero ? '★ '+p.name : p.name;
+      return `<tr class="${heroClass}">
+        <td style="text-align:left;padding-left:8px;white-space:nowrap">${name}</td>
+        <td>${p.pos}</td>
+        <td class="${ptsClass}"><b>${p.pts}</b></td>
+        <td>${p.reb}</td><td>${p.ast}</td><td>${p.stl}</td><td>${p.blk}</td><td>${p.tov}</td>
+        <td>${p.fgm}/${p.fga}</td><td>${fgPct}</td>
+        <td>${p.fg3m}/${p.fg3a}</td><td>${fg3Pct}</td>
+        <td>${p.ftm}/${p.fta}</td><td>${ftPct}</td>
+        <td class="${p.pm>0?'pos-pm':'neg-pm'}">${pm}</td>
+      </tr>`;
+    }).join('');
+    const totPts = team.players.reduce((s,p)=>s+p.pts,0);
+    const totReb = team.players.reduce((s,p)=>s+p.reb,0);
+    const totAst = team.players.reduce((s,p)=>s+p.ast,0);
+    const totFgM = team.players.reduce((s,p)=>s+p.fgm,0);
+    const totFgA = team.players.reduce((s,p)=>s+p.fga,0);
+    return `<div class="box-team">
+      <div class="box-team-header">
+        <span class="box-team-name">${team.name}</span>
+        <span class="box-team-score" style="color:${scoreCol}">${team.pts}</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th style="text-align:left">球员</th><th>位</th>
+            <th>分</th><th>篮</th><th>助</th><th>断</th><th>帽</th><th>失</th>
+            <th>FG</th><th>FG%</th><th>3P</th><th>3P%</th><th>FT</th><th>FT%</th><th>+/-</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr class="total-row">
+            <td style="text-align:left"><b>合计</b></td><td>-</td>
+            <td><b>${totPts}</b></td><td>${totReb}</td><td>${totAst}</td>
+            <td>-</td><td>-</td><td>-</td>
+            <td>${totFgM}/${totFgA}</td>
+            <td>${totFgA?(totFgM/totFgA*100).toFixed(1)+'%':'-'}</td>
+            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+  };
+  return `<div class="box-grid">
+    ${renderTeam(data.home)}
+    ${renderTeam(data.away)}
+  </div>`;
+}
+</script>
+{% endblock %}

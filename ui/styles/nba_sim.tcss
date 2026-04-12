@@ -1,0 +1,256 @@
+/* ═══════════════════════════════════════════════════════
+   NBA 模拟器主题  —  深色 + 青蓝调
+   ═══════════════════════════════════════════════════════ */
+
+Screen {
+    background: #0a0a12;
+}
+
+/* ── 通用面板 ─────────────────────────────────────────── */
+.panel {
+    border: solid #1e2040;
+    background: #0d0d1a;
+    padding: 0 1;
+}
+
+.panel--highlight {
+    border: solid #2a4080;
+    background: #0d1020;
+}
+
+/* ── 主菜单 ───────────────────────────────────────────── */
+#main-menu {
+    align: center middle;
+}
+
+#main-menu-box {
+    width: 50;
+    height: 22;
+    border: double #1e6eb5;
+    background: #0a0a18;
+    padding: 1 2;
+    align: center top;
+}
+
+#menu-title {
+    text-align: center;
+    color: #4dc3ff;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#menu-subtitle {
+    text-align: center;
+    color: #506080;
+    margin-bottom: 2;
+}
+
+.menu-btn {
+    width: 100%;
+    margin: 0 0 1 0;
+    background: #12122a;
+    border: solid #1e3060;
+    color: #9ab0d0;
+}
+
+.menu-btn:hover {
+    background: #1a2040;
+    border: solid #4080c0;
+    color: #ffffff;
+}
+
+.menu-btn--primary {
+    background: #0a2050;
+    border: solid #1e6eb5;
+    color: #4dc3ff;
+    text-style: bold;
+}
+
+.menu-btn--primary:hover {
+    background: #0d3070;
+    border: solid #3090e0;
+}
+
+/* ── 球员选择屏幕 ─────────────────────────────────────── */
+#player-select {
+    layout: vertical;
+}
+
+#search-bar {
+    dock: top;
+    height: 3;
+    background: #0d0d1a;
+    border-bottom: solid #1e2040;
+    padding: 0 1;
+}
+
+#search-input {
+    width: 40;
+    background: #12122a;
+    border: solid #2a3060;
+    color: #ffffff;
+}
+
+#player-table {
+    border: none;
+    background: #0a0a12;
+}
+
+/* ── 生涯仪表盘 ────────────────────────────────────────── */
+#dashboard {
+    layout: grid;
+    grid-size: 3 3;
+    grid-columns: 28 1fr 18;
+    grid-rows: 1 1fr 3;
+}
+
+#header-bar {
+    column-span: 3;
+    background: #060612;
+    border-bottom: solid #1e2040;
+    padding: 0 2;
+    height: 1;
+    layout: horizontal;
+}
+
+#player-card-panel {
+    row-span: 1;
+    border-right: solid #1e2040;
+    border-bottom: solid #1e2040;
+    background: #0a0a15;
+    padding: 1;
+    overflow-y: auto;
+}
+
+#event-feed-panel {
+    row-span: 1;
+    border-right: solid #1e2040;
+    border-bottom: solid #1e2040;
+    background: #080810;
+    padding: 0;
+}
+
+#action-panel {
+    row-span: 1;
+    border-bottom: solid #1e2040;
+    background: #0a0a15;
+    padding: 1;
+    align: center top;
+}
+
+#season-stats-bar {
+    column-span: 3;
+    background: #060612;
+    border-top: solid #1e2040;
+    padding: 0 2;
+    height: 3;
+}
+
+/* ── 属性进度条 ────────────────────────────────────────── */
+.attr-row {
+    height: 1;
+    layout: horizontal;
+}
+
+.attr-label {
+    width: 8;
+    color: #506080;
+}
+
+.attr-bar {
+    width: 12;
+    color: #1e6eb5;
+}
+
+.attr-val {
+    width: 4;
+    color: #ffffff;
+    text-align: right;
+}
+
+/* 状态栏特殊颜色 */
+.attr-bar--health  { color: #22cc66; }
+.attr-bar--fatigue { color: #dd6622; }
+.attr-bar--morale  { color: #aa44dd; }
+
+/* ── 按钮组 ────────────────────────────────────────────── */
+.action-btn {
+    width: 16;
+    margin: 0 0 1 0;
+    background: #0a1830;
+    border: solid #1e4080;
+    color: #7ab0e0;
+}
+
+.action-btn:hover {
+    background: #0d2248;
+    border: solid #3070c0;
+    color: #ffffff;
+}
+
+.action-btn--advance {
+    background: #0a2810;
+    border: solid #1e6030;
+    color: #44dd88;
+    text-style: bold;
+}
+
+.action-btn--advance:hover {
+    background: #0d3818;
+    border: solid #2e8048;
+}
+
+.action-btn--danger {
+    background: #28100a;
+    border: solid #602010;
+    color: #dd8844;
+}
+
+/* ── 事件叙事 ────────────────────────────────────────────  */
+#event-log {
+    background: #080810;
+    padding: 0 1;
+    scrollbar-color: #1e2040 #080810;
+}
+
+/* ── 数据查看器 ──────────────────────────────────────────  */
+#stats-screen {
+    layout: vertical;
+}
+
+#stats-tabs {
+    background: #0a0a12;
+}
+
+/* ── CRUD 编辑器 ──────────────────────────────────────────  */
+#crud-screen {
+    layout: vertical;
+}
+
+.crud-input {
+    background: #12122a;
+    border: solid #2a3060;
+    color: #ffffff;
+    width: 20;
+}
+
+.crud-label {
+    width: 14;
+    color: #506080;
+    content-align: right middle;
+    padding-right: 1;
+}
+
+.crud-row {
+    height: 3;
+    layout: horizontal;
+    align: left middle;
+    padding: 0 1;
+}
+
+.save-btn {
+    background: #0a2050;
+    border: solid #1e6eb5;
+    color: #4dc3ff;
+    margin: 1 0;
+}

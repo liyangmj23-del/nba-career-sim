@@ -1,0 +1,4 @@
+nba_api>=1.5.2
+textual>=0.80.0
+rich>=13.7.0
+pandas>=2.2.0

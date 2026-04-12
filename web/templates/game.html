@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}{{ player.full_name }} · 生涯模拟{% endblock %}
+
+{% block nav_extra %}
+<div class="nav-center">
+  <span class="nav-player">{{ player.full_name }}</span>
+  <span class="nav-sep">·</span>
+  <span id="nav-week">第 {{ save.current_week }} 周</span>
+  <span class="nav-sep">·</span>
+  <span class="nav-season">{{ CURRENT_SEASON_YEAR-1 }}-{{ (CURRENT_SEASON_YEAR|string)[2:] }} 赛季</span>
+</div>
+<div class="nav-right">
+  <a class="btn btn-ghost btn-sm" href="/game/{{ save.save_id }}/stats" target="_blank">查看数据</a>
+  <a class="btn btn-ghost btn-sm" href="/">退出</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="game-layout">
+
+  <!-- ══ 左侧：球员卡 ══════════════════════════════════════════════════════ -->
+  <aside class="player-panel">
+    <div class="player-identity">
+      <div class="player-pos">{{ player.position or '?' }}</div>
+      <div class="player-name-lg">{{ player.full_name }}</div>
+      <div class="player-team">{{ team_name }}</div>
+    </div>
+
+    <!-- 综合评级 + 状态 -->
+    <div class="overall-row">
+      <div class="overall-badge" id="overall-badge">
+        <span id="overall-val">{{ attrs.get('overall_rating', '-') }}</span>
+        <span class="overall-lbl">综合</span>
+      </div>
+      <div class="status-bars">
+        <div class="sbar-row">
+          <span class="sbar-label">体力</span>
+          <div class="sbar-wrap"><div class="sbar health-bar" id="bar-health" style="width:{{ attrs.get('health',100) }}%"></div></div>
+          <span class="sbar-val" id="val-health">{{ attrs.get('health',100) }}</span>
+        </div>
+        <div class="sbar-row">
+          <span class="sbar-label">疲劳</span>
+          <div class="sbar-wrap"><div class="sbar fatigue-bar" id="bar-fatigue" style="width:{{ attrs.get('fatigue',0) }}%"></div></div>
+          <span class="sbar-val" id="val-fatigue">{{ attrs.get('fatigue',0) }}</span>
+        </div>
+        <div class="sbar-row">
+          <span class="sbar-label">士气</span>
+          <div class="sbar-wrap"><div class="sbar morale-bar" id="bar-morale" style="width:{{ attrs.get('morale',75) }}%"></div></div>
+          <span class="sbar-val" id="val-morale">{{ attrs.get('morale',75) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 属性 -->
+    <div class="attrs-section">
+      <div class="attrs-group-title">身体素质</div>
+      {% for key, lbl in [('speed','速度'),('strength','力量'),('vertical','弹跳'),('endurance','耐力')] %}
+      <div class="attr-row">
+        <span class="alabel">{{ lbl }}</span>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#4dc3ff' if attrs.get(key,50) >= 75 else ('#22c55e' if attrs.get(key,50) >= 60 else '#94a3b8') }}"></div></div>
+        <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
+      </div>
+      {% endfor %}
+
+      <div class="attrs-group-title">进攻</div>
+      {% for key, lbl in [('ball_handling','控球'),('shooting_2pt','两分'),('shooting_3pt','三分'),('free_throw','罚球'),('passing','传球')] %}
+      <div class="attr-row">
+        <span class="alabel">{{ lbl }}</span>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#ffc107' if attrs.get(key,50) >= 80 else ('#4dc3ff' if attrs.get(key,50) >= 65 else '#94a3b8') }}"></div></div>
+        <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
+      </div>
+      {% endfor %}
+
+      <div class="attrs-group-title">防守</div>
+      {% for key, lbl in [('perimeter_def','外防'),('interior_def','内防'),('steal_tendency','抢断'),('block_tendency','盖帽')] %}
+      <div class="attr-row">
+        <span class="alabel">{{ lbl }}</span>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#22c55e' if attrs.get(key,50) >= 75 else '#94a3b8' }}"></div></div>
+        <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
+      </div>
+      {% endfor %}
+
+      <div class="attrs-group-title">心理</div>
+      {% for key, lbl in [('basketball_iq','篮球IQ'),('clutch_factor','关键时刻'),('leadership','领导力'),('work_ethic','勤奋')] %}
+      <div class="attr-row">
+        <span class="alabel">{{ lbl }}</span>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#a855f7' if attrs.get(key,50) >= 75 else '#94a3b8' }}"></div></div>
+        <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 编辑属性 -->
+    <details class="edit-attrs-toggle">
+      <summary>编辑属性</summary>
+      <div class="edit-attrs-form" id="edit-attrs-form">
+        {% set edit_fields = [
+          ('speed','速度'),('strength','力量'),('vertical','弹跳'),('endurance','耐力'),
+          ('ball_handling','控球'),('shooting_2pt','两分'),('shooting_3pt','三分'),
+          ('free_throw','罚球'),('passing','传球'),('perimeter_def','外防'),
+          ('interior_def','内防'),('steal_tendency','抢断'),('block_tendency','盖帽'),
+          ('basketball_iq','IQ'),('clutch_factor','关键'),('leadership','领袖'),
+          ('work_ethic','勤奋'),('health','体力'),('morale','士气'),('fatigue','疲劳')
+        ] %}
+        {% for key, lbl in edit_fields %}
+        <div class="edit-row">
+          <label>{{ lbl }}</label>
+          <input type="number" class="edit-input" data-key="{{ key }}" value="{{ attrs.get(key,50) }}" min="0" max="99">
+        </div>
+        {% endfor %}
+        <button class="btn btn-primary btn-sm" onclick="saveAttrs()">保存属性</button>
+        <span class="edit-feedback" id="edit-feedback"></span>
+      </div>
+    </details>
+
+    <!-- 神模式 -->
+    <details class="edit-attrs-toggle">
+      <summary>⚡ 指定数据（神模式）</summary>
+      <div class="edit-attrs-form">
+        <p class="hint-text">填写后每场比赛按指定数据生成（±10%浮动），留空=关闭</p>
+        {% for key, lbl in [('pts','得分/场'),('reb','篮板/场'),('ast','助攻/场'),('stl','抢断/场'),('blk','盖帽/场')] %}
+        <div class="edit-row">
+          <label>{{ lbl }}</label>
+          <input type="number" class="override-input" data-key="{{ key }}" value="{{ overrides.get(key,'') }}" min="0" max="100" step="0.5">
+        </div>
+        {% endfor %}
+        <button class="btn btn-warning btn-sm" onclick="saveOverrides()">应用神模式</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearOverrides()">关闭</button>
+        <span class="edit-feedback" id="override-feedback"></span>
+      </div>
+    </details>
+  </aside>
+
+  <!-- ══ 中间：事件流 ══════════════════════════════════════════════════════ -->
+  <section class="event-section">
+    <div class="event-feed" id="event-feed">
+      <div class="feed-welcome">
+        <p>{{ CURRENT_SEASON_YEAR-1 }}-{{ (CURRENT_SEASON_YEAR|string)[2:] }} 赛季</p>
+        <p class="hint-text">点击「推进一周」开始模拟</p>
+      </div>
+      {% for e in events %}
+      {% set sev_cls = e.severity %}
+      {% set cat_map = {'game_performance':'比赛','injury':'伤病','personal_life':'个人','team_chemistry':'球队','career_milestones':'里程碑','off_court':'场外'} %}
+      <div class="feed-item {{ sev_cls }}">
+        <div class="feed-meta">第{{ e.week_number }}周 · {{ cat_map.get(e.category, e.category) }}</div>
+        <div class="feed-title">{{ e.title }}</div>
+        <div class="feed-text">{{ e.narrative_text[:300] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ══ 右侧：操作区 ══════════════════════════════════════════════════════ -->
+  <aside class="action-panel">
+    {% if season_done %}
+    <div class="season-done-badge">赛季结束</div>
+    {% else %}
+    <button class="btn btn-advance" id="btn-advance" onclick="advanceWeek()">
+      推进一周
+    </button>
+    {% endif %}
+
+    <div class="week-progress">
+      <div class="wp-label">第 <span id="week-num">{{ save.current_week }}</span> / 30 周</div>
+      <div class="wp-bar-wrap">
+        <div class="wp-bar" id="wp-bar" style="width:{{ [save.current_week/30*100, 100]|min|round }}%"></div>
+      </div>
+    </div>
+
+    <!-- 赛季均值 -->
+    <div class="stats-mini">
+      <div class="stats-mini-title">本赛季均值</div>
+      {% set s = season_stats %}
+      {% if s %}
+      <div class="stats-mini-grid">
+        <div class="smc"><span class="smc-val cyan">{{ s.pts }}</span><span class="smc-lbl">得分</span></div>
+        <div class="smc"><span class="smc-val green">{{ s.reb }}</span><span class="smc-lbl">篮板</span></div>
+        <div class="smc"><span class="smc-val yellow">{{ s.ast }}</span><span class="smc-lbl">助攻</span></div>
+        <div class="smc"><span class="smc-val purple">{{ s.stl }}</span><span class="smc-lbl">抢断</span></div>
+        <div class="smc"><span class="smc-val orange">{{ s.blk }}</span><span class="smc-lbl">盖帽</span></div>
+        <div class="smc"><span class="smc-val">{{ s.fg }}%</span><span class="smc-lbl">FG%</span></div>
+        <div class="smc"><span class="smc-val">{{ s.fg3 }}%</span><span class="smc-lbl">3P%</span></div>
+        <div class="smc"><span class="smc-val">{{ s.ft }}%</span><span class="smc-lbl">FT%</span></div>
+      </div>
+      {% else %}
+      <p class="hint-text">推进后显示</p>
+      {% endif %}
+    </div>
+
+    <div class="action-links">
+      <a class="btn btn-ghost btn-full" href="/game/{{ save.save_id }}/stats" target="_blank">查看完整数据</a>
+    </div>
+  </aside>
+
+</div><!-- /game-layout -->
+
+<!-- ══ 选择事件弹窗 ══════════════════════════════════════════════════════════ -->
+<div class="choice-overlay" id="choice-overlay" style="display:none">
+  <div class="choice-modal">
+    <div class="choice-badge">⚡ 需要你做出选择</div>
+    <div class="choice-title" id="choice-title"></div>
+    <div class="choice-narrative" id="choice-narrative"></div>
+    <div class="choice-prompt" id="choice-prompt"></div>
+    <div class="choice-options" id="choice-options"></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SAVE_ID = {{ save.save_id }};
+const PLAYER_ID = {{ player.player_id }};
+</script>
+{% endblock %}

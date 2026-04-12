@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}NBA 生涯模拟器{% endblock %}</title>
+<script src="/static/chart.min.js"></script>
+<link rel="stylesheet" href="/static/nba.css">
+</head>
+<body>
+
+<!-- 更新提示条（有新版本时显示） -->
+<div id="update-banner" style="display:none;background:#1a2a00;border-bottom:1px solid #4ade80;
+  padding:6px 20px;font-size:12px;color:#4ade80;text-align:center">
+  🎉 发现新版本 <span id="update-ver"></span>！
+  <a id="update-link" href="#" target="_blank"
+    style="color:#86efac;font-weight:700;margin-left:8px">查看更新内容 →</a>
+  <button onclick="document.getElementById('update-banner').style.display='none'"
+    style="float:right;background:none;border:none;color:#4ade80;cursor:pointer;font-size:14px">✕</button>
+</div>
+
+<nav class="navbar">
+  <a class="logo" href="/">NBA SIM</a>
+  {% block nav_extra %}{% endblock %}
+</nav>
+<main>{% block content %}{% endblock %}</main>
+<script src="/static/game.js"></script>
+{% block scripts %}{% endblock %}
+
+<script>
+// 启动后 3 秒检查更新（避免影响首屏加载）
+setTimeout(async () => {
+  try {
+    const resp = await fetch('/api/update-info');
+    const d = await resp.json();
+    if (d.has_update && d.version) {
+      document.getElementById('update-ver').textContent = 'v' + d.version;
+      document.getElementById('update-link').href = d.url || '#';
+      document.getElementById('update-banner').style.display = 'block';
+    }
+  } catch(e) {}
+}, 3000);
+</script>
+</body>
+</html>

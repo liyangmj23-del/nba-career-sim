@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}主菜单 · NBA 生涯模拟器{% endblock %}
+{% block content %}
+<div class="menu-wrap">
+  <div class="menu-card">
+    <div class="menu-logo">NBA</div>
+    <div class="menu-subtitle">生涯模拟器</div>
+    <div class="menu-tagline">你的选择，你的故事</div>
+
+    <div class="menu-btns">
+      <a class="btn btn-primary" href="/select">选择现有球员开始</a>
+      <a class="btn btn-primary" href="/create-player">新建自定义球员</a>
+    </div>
+
+    {% if saves %}
+    <div class="saves-section">
+      <div class="saves-title">继续存档</div>
+      {% for s in saves[:5] %}
+      <a class="save-item" href="/load/{{ s.save_id }}">
+        <div class="save-name">{{ s.save_name }}</div>
+        <div class="save-meta">赛季：{{ s.current_season-1 }}-{{ (s.current_season|string)[2:] }} &nbsp;·&nbsp; 第 {{ s.current_week }} 周</div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

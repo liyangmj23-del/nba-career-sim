@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}新建球员{% endblock %}
+{% block content %}
+<div class="page-wrap" style="max-width:600px">
+  <div class="page-header">
+    <h1>新建自定义球员</h1>
+    <a class="btn btn-ghost" href="/">← 返回</a>
+  </div>
+  {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
+
+  <form method="post" class="form-card">
+    <div class="form-group">
+      <label>球员姓名</label>
+      <input name="name" placeholder="例：张伟 / God Player" required>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>位置</label>
+        <select name="position">
+          <option value="PG">PG — 控球后卫</option>
+          <option value="SG">SG — 得分后卫</option>
+          <option value="SF">SF — 小前锋</option>
+          <option value="PF">PF — 大前锋</option>
+          <option value="C">C — 中锋</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>年龄</label>
+        <input name="age" type="number" value="22" min="18" max="45">
+      </div>
+      <div class="form-group">
+        <label>生涯年数</label>
+        <input name="career_year" type="number" value="1" min="1" max="25">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>加入球队（ID，留空=自由球员）</label>
+      <select name="team_id">
+        <option value="">— 自由球员 —</option>
+        {% for t in teams %}
+        <option value="{{ t.team_id }}">{{ t.full_name }} ({{ t.abbreviation }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>综合评级（1-99，留空=按位置默认）</label>
+      <input name="overall" type="number" min="1" max="99" placeholder="例：85">
+    </div>
+    <button type="submit" class="btn btn-primary" style="width:100%">创建并开始生涯</button>
+  </form>
+</div>
+{% endblock %}
