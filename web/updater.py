@@ -6,7 +6,7 @@ import threading
 from pathlib import Path
 
 # 修改为你的 GitHub 仓库地址
-GITHUB_REPO = "YOUR_GITHUB_USERNAME/nba-career-sim"
+GITHUB_REPO = "liyangmj23-del/nba-career-sim"
 GITHUB_API  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 VERSION_FILE = Path(__file__).parent.parent / "VERSION"
 
