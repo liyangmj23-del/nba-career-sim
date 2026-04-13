@@ -236,7 +236,8 @@ def game(save_id):
 
     # 当前 stat_overrides
     overrides = save.state_json.get("stat_overrides", {})
-    season_done = save.current_week > 30
+    # 用持久化标记判断赛季是否结束（不依赖current_week，避免apply_year_end重置后状态丢失）
+    season_done = save.state_json.get("season_ended", False) or save.current_week > 30
 
     return render_template("game.html",
         save=save, player=player, attrs=attrs,
@@ -413,7 +414,8 @@ def game_stats(save_id):
                       gl.steals, gl.blocks, gl.turnovers,
                       gl.fg_made, gl.fg_attempted,
                       gl.fg3_made, gl.fg3_attempted,
-                      gl.ft_made, gl.ft_attempted, gl.plus_minus
+                      gl.ft_made, gl.ft_attempted, gl.plus_minus,
+                      gl.season_year
                FROM player_game_log gl
                LEFT JOIN teams t ON gl.opponent_team_id = t.team_id
                WHERE gl.player_id=? ORDER BY gl.game_number""",
@@ -431,6 +433,7 @@ def game_stats(save_id):
             "fgm":r[11],"fga":fga,
             "fg3m":r[13],"fg3a":fg3a,
             "ftm":r[15],"fta":fta,"pm":r[17],
+            "year": r[18],
             "fg_pct": round(r[11]/fga*100,1) if fga else 0,
             "fg3_pct": round(r[13]/fg3a*100,1) if fg3a else 0,
             "ft_pct": round(r[15]/fta*100,1) if fta else 0,

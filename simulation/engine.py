@@ -144,11 +144,37 @@ def run_season(save_id: int, season_year: int = CURRENT_SEASON_YEAR):
         # ── 2. 获取强制连锁事件 ──────────────────────────────────────────────
         forced_chains = get_forced_chains(state_json, week)
 
+        # ── 2b. 触发选择后果延迟叙事 ─────────────────────────────────────────
+        pending_cons = state_json.get("pending_consequences", [])
+        due_cons     = [c for c in pending_cons if c.get("fire_week", 9999) <= week]
+        if due_cons:
+            state_json["pending_consequences"] = [c for c in pending_cons if c.get("fire_week", 9999) > week]
+            for cons in due_cons:
+                event_repo.append({
+                    "save_id":         save_id,
+                    "player_id":       player.player_id,
+                    "season_year":     season_year,
+                    "week_number":     week,
+                    "event_key":       f"consequence.{cons.get('choice_key','unknown')}",
+                    "category":        "career_milestones",
+                    "severity":        "normal",
+                    "title":           cons.get("title", "选择的影响"),
+                    "narrative_text":  cons.get("narrative", ""),
+                    "attribute_delta": {},
+                    "stat_delta":      {},
+                    "is_player_choice": 0,
+                })
+
         # ── 3. 疲劳自然恢复（每周 -8，但比赛会加回来）────────────────────────
         attrs["fatigue"] = max(0, attrs["fatigue"] - 8)
 
         # ── 4. 模拟本周比赛 ──────────────────────────────────────────────────
-        stat_overrides = state_json.get("stat_overrides")
+        stat_overrides_raw = state_json.get("stat_overrides")
+        # 应用年龄衰退系数（多赛季后假如数据自然下降）
+        override_decay = state_json.get("override_decay", 1.0)
+        stat_overrides = None
+        if stat_overrides_raw:
+            stat_overrides = {k: v * override_decay for k, v in stat_overrides_raw.items()}
         n_games = games_this_week()
         games: list[GameBox] = []
         game_opponents: list[int] = []
@@ -231,6 +257,10 @@ def run_season(save_id: int, season_year: int = CURRENT_SEASON_YEAR):
         season_stats = _update_season_stats(season_stats, week_summary)
         _persist_season_stats(player.player_id, my_team_id, season_year, season_stats)
 
+        # ── 8b. 检查是否正在接近/超越历史记录（第15/25周触发实时叙事）─────────
+        if week in (15, 25) and season_stats.get("games_played", 0) >= 10:
+            _check_record_approach(save_id, player.player_id, season_year, week, season_stats, event_repo)
+
         # ── 9. 持久化：写回属性 + 存档 + 事件日志 ────────────────────────────
         player_repo.update_attributes(player.player_id, season_year, attrs)
 
@@ -293,8 +323,70 @@ def run_season(save_id: int, season_year: int = CURRENT_SEASON_YEAR):
             impact          = pre_impact,     # 本周影响力数据
         )
 
-    # ── 赛季结束：只评估荣誉（统计已在循环内每周写入，无需重复写）────────────
+    # ── 赛季结束：标记已完成 + 评估荣誉 ───────────────────────────────────────
+    state_json["season_ended"] = True   # 持久化标记，不依赖 current_week
+    save_repo.update(save_id, {"state_json": state_json})
     _evaluate_achievements(save_id, player.player_id, season_year, season_stats, event_repo)
+
+
+def _check_record_approach(save_id, player_id, season_year, week, season_stats, event_repo):
+    """实时检测球员数据是否接近或超越 NBA 历史单赛季记录，触发专属事件叙事。"""
+    from simulation.season_manager import NBA_SEASON_RECORDS
+    APPROACH_RATIO = 0.90  # 接近90%就开始叙事
+    state_key      = f"record_event_fired_{season_year}"
+
+    for stat_key, (record_val, holder, record_year) in NBA_SEASON_RECORDS.items():
+        player_val = season_stats.get(stat_key, 0)
+        if player_val <= 0:
+            continue
+        ratio = player_val / record_val
+        fired_key = f"{state_key}_{stat_key}"
+
+        if ratio >= 1.0:
+            # 已超越历史记录
+            title     = f"超越历史记录：{stat_key.upper()} {player_val:.1f}（{holder} {record_val}）"
+            narrative = (
+                f"数据摆在那里：{stat_key.upper()} {player_val:.1f}。\n"
+                f"\n"
+                f"{holder} 在 {record_year} 创下的 {record_val} 单赛季记录，"
+                f"现在有人超越了它。\n"
+                f"\n"
+                f"统计员在数据库里更新了那一栏，\n"
+                f"但没有人知道该怎么评价这件事——\n"
+                f"因为语言是为正常范围内的事情准备的。"
+            )
+            severity = "legendary"
+        elif ratio >= APPROACH_RATIO and week == 15:
+            # 接近历史记录（第15周预警）
+            title     = f"接近历史记录：{stat_key.upper()} {player_val:.1f}（{holder} {record_val}）"
+            narrative = (
+                f"有人注意到了。\n"
+                f"\n"
+                f"当前 {stat_key.upper()} 场均 {player_val:.1f}，"
+                f"而 {holder} 在 {record_year} 的历史记录是 {record_val}。\n"
+                f"\n"
+                f"没有人大声说出来，但那个数字被悄悄地传了出去。\n"
+                f"记者们开始在采访中绕着弯子提问。"
+            )
+            severity = "major"
+        else:
+            continue
+
+        # 避免重复触发同一赛季同一项记录事件
+        event_repo.append({
+            "save_id":         save_id,
+            "player_id":       player_id,
+            "season_year":     season_year,
+            "week_number":     week,
+            "event_key":       f"record.{stat_key}.{'break' if ratio>=1 else 'approach'}",
+            "category":        "career_milestones",
+            "severity":        severity,
+            "title":           title,
+            "narrative_text":  narrative,
+            "attribute_delta": {},
+            "stat_delta":      {},
+            "is_player_choice": 0,
+        })
 
 
 def _load_season_stats(player_id: int, season_year: int) -> dict:

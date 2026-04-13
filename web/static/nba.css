@@ -304,7 +304,8 @@ input,select,textarea{font-family:inherit;font-size:14px}
   }
   .event-section{ min-height: 50vh; }
   .btn-advance{ width: auto; flex: 1; min-width: 120px; }
-  .stats-mini{ display: none; }  /* 移动端隐藏mini统计，数据页查看 */
+  .stats-mini{ font-size:11px; }  /* 移动端缩小但不隐藏 */
+  .stats-mini-grid{ grid-template-columns:repeat(4,1fr); }  /* 2行4列 */
   .week-progress{ flex: 1; }
 
   /* 数据页 */

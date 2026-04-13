@@ -45,8 +45,14 @@ HOF_WEIGHTS = {
 
 
 def get_career_totals(player_id: int, save_id: int) -> dict:
-    """从 player_season_stats 聚合生涯总计数据。"""
+    """从 player_season_stats 聚合生涯总计数据，只统计当前存档的赛季，防止跨存档数据混合。"""
     with db() as conn:
+        # 取该存档出现过的赛季（通过 event_log 过滤）
+        save_seasons = {r[0] for r in conn.execute(
+            "SELECT DISTINCT season_year FROM event_log WHERE save_id=?",
+            (save_id,)
+        ).fetchall()}
+
         rows = conn.execute(
             """SELECT season_year, games_played, points_pg, rebounds_pg,
                       assists_pg, steals_pg, blocks_pg, turnovers_pg
@@ -55,6 +61,10 @@ def get_career_totals(player_id: int, save_id: int) -> dict:
                ORDER BY season_year""",
             (player_id,),
         ).fetchall()
+
+    # 隔离：只计入该存档参与的赛季
+    if save_seasons:
+        rows = [r for r in rows if r[0] in save_seasons]
 
     totals = {
         "seasons": 0, "games": 0,

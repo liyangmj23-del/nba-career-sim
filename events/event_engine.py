@@ -185,10 +185,17 @@ def roll_events(
             candidates.append((ev, prob))
 
     # ── 3. 优先抽一个选择事件（每周保证至少尝试一次）────────────────────────────
+    # 特殊规则：合同年（career_year % 4 == 0）必须触发合同抉择
+    career_year = ctx.get("career_year", 1)
+    week_num    = ctx.get("week_number", 1)
+    is_contract_year = career_year >= 4 and career_year % 4 == 0 and week_num in (8, 12, 16)
+
     random.shuffle(choice_candidates)
     choice_fired = False
     for ev, prob in choice_candidates:
-        if random.random() < prob:
+        # 合同年：直接触发合同抉择事件，不走概率
+        force = is_contract_year and ev.key == "choice.contract_direction" and not choice_fired
+        if force or random.random() < prob:
             fe = _fire_event(ev, ctx)
             if fe:
                 fired.append(fe)

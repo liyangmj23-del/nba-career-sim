@@ -106,7 +106,7 @@ def get_season_summary(save_id: int, player_id: int, season_year: int) -> dict:
     proj_team_wins   = max(0, min(82, base_wins + player_win_bonus))
 
     # ── 季后赛资格 ────────────────────────────────────────────────────────────
-    playoff_qualified = proj_team_wins >= 36  # 约44%胜率线
+    playoff_qualified = proj_team_wins >= 41  # NBA实际约50%胜率（41胜）才能进季后赛
 
     # ── 本赛季关键事件 ────────────────────────────────────────────────────────
     events = event_repo.get_by_save(save_id, season_year=season_year, limit=50)
@@ -185,6 +185,8 @@ def apply_year_end(player_id: int, save_id: int, season_year: int) -> dict:
     if state.get("stat_overrides"):
         decay = _compute_override_decay(new_age, state["stat_overrides"])
         state["override_decay"] = decay
+    state.pop("season_ended", None)   # 新赛季开始，清除上赛季结束标记
+    state["total_games_played"] = 0   # 重置出场数计数
 
     save_repo.update(save_id, {
         "current_age":     new_age,

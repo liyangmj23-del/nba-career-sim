@@ -656,10 +656,13 @@ register(EventDefinition(
     category="career_milestones",
     title="续约谈判——你的优先级",
     severity="legendary",
-    base_prob=0.0,
+    base_prob=0.85,          # 合同年高概率触发（career_year % 4 == 0 时）
     one_time=False,
-    cooldown_weeks=52,
-    conditions=[],
+    cooldown_weeks=48,       # ~4个赛季冷却，防止反复出现
+    conditions=[
+        Condition("career_year", ">=", 4),   # 至少打过4年才有续约资格
+    ],
+    monthly_only=True,       # 只在第4/8/12/...周触发（避免赛季初打断节奏）
     narratives=[
         """谈判桌上摆着几个方向。
 

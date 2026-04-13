@@ -38,7 +38,7 @@
     <div class="tbl-wrap">
       <table class="data-table">
         <thead><tr>
-          <th>周</th><th>场</th><th>主/客</th><th>对手</th><th>胜负</th>
+          <th>赛季</th><th>周</th><th>场</th><th>主/客</th><th>对手</th><th>胜负</th>
           <th>分</th><th>篮</th><th>助</th><th>断</th><th>帽</th><th>失</th>
           <th>FG</th><th>FG%</th><th>3P</th><th>3P%</th><th>FT</th><th>FT%</th><th>+/-</th>
           <th>看板</th>
@@ -46,6 +46,7 @@
         <tbody>
           {% for g in games %}
           <tr>
+            <td style="color:#64748b;font-size:11px">{{ g.year-1 if g.year else '-' }}-{{ (g.year|string)[2:] if g.year else '-' }}</td>
             <td>第{{ g.week }}周</td><td>G{{ g.gnum }}</td>
             <td class="{{ 'home' if g.home else 'away' }}">{{ '主' if g.home else '客' }}</td>
             <td><b>{{ g.opp }}</b></td>

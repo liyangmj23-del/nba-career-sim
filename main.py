@@ -1,6 +1,7 @@
 """
-NBA 生涯模拟器启动入口。
-运行方式：python main.py
+[已废弃] Textual UI 启动入口。
+v0.2.0 起已切换为 Web 版，请使用：python run_web.py
+保留此文件仅供参考，不再维护。
 """
 import sys
 from pathlib import Path

@@ -189,6 +189,15 @@
 
     <div class="action-links">
       <a class="btn btn-ghost btn-full" href="/game/{{ save.save_id }}/stats" target="_blank">查看完整数据</a>
+      {% if save.career_year and save.career_year >= 3 %}
+      <form method="post" action="/game/{{ save.save_id }}/retire"
+            onsubmit="return confirm('确认退役？生涯将正式结束。')">
+        <button type="submit" class="btn btn-ghost btn-full"
+          style="color:#475569;font-size:11px;margin-top:4px">
+          宣布退役（第{{ save.career_year }}年）
+        </button>
+      </form>
+      {% endif %}
     </div>
   </aside>
 

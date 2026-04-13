@@ -1,6 +1,7 @@
 """
-NBA 模拟器 — Rich CLI 游戏入口
-运行方式：python play.py
+[已废弃] NBA 模拟器 — Rich CLI 游戏入口
+v0.2.0 起已切换为 Web 版，请使用：python run_web.py
+保留此文件仅供参考，不再维护。
 """
 import sys
 import json
