@@ -35,18 +35,6 @@ async function advanceWeek() {
       return;
     }
 
-    if (data.season_done) {
-      // 最后一周也要显示内容
-      if (data.week <= 30 && data.events !== undefined) {
-        appendWeekToFeed(data);
-        updatePlayerCard(data.attrs, data.week_summary);
-        updateSeasonStats(data.season_stats);
-        updateWeekNum(data.week);
-      }
-      showSeasonEnd();
-      return;
-    }
-
     appendWeekToFeed(data);
     updatePlayerCard(data.attrs, data.week_summary);
     updateSeasonStats(data.season_stats);

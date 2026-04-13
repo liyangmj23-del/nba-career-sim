@@ -693,10 +693,30 @@ def off_season(save_id):
 
 @app.route("/game/<int:save_id>/next-season", methods=["POST"])
 def next_season(save_id):
-    """执行年末处理，进入下一赛季。"""
+    """执行年末处理，应用休赛期选择效果，进入下一赛季。"""
     save = save_repo.get_by_id(save_id)
     if not save:
         return redirect(url_for("menu"))
+
+    # 应用休赛期训练方向效果
+    choice = request.form.get("off_season_choice", "rest")
+    OFF_SEASON_EFFECTS = {
+        "training": {"ball_handling": 2, "shooting_2pt": 2, "perimeter_def": 1, "fatigue": 8},
+        "rest":     {"health": 12, "fatigue": -15, "morale": 8},
+        "media":    {"media_handling": 3, "leadership": 1, "morale": 5},
+        "film":     {"basketball_iq": 3, "clutch_factor": 1},
+    }
+    effects = OFF_SEASON_EFFECTS.get(choice, OFF_SEASON_EFFECTS["rest"])
+    attr = player_repo.get_attributes(save.player_id, save.current_season)
+    if attr:
+        skip = {"attr_id", "player_id", "season_year"}
+        attrs = {k: getattr(attr, k) for k in attr.__dataclass_fields__ if k not in skip}
+        updates = {}
+        for k, delta in effects.items():
+            lo, hi = (0, 100) if k in ("health", "morale", "fatigue") else (1, 99)
+            updates[k] = max(lo, min(hi, attrs.get(k, 50) + delta))
+        if updates:
+            player_repo.update_attributes(save.player_id, save.current_season, updates)
 
     from simulation.season_manager import apply_year_end
     season_year = save.current_season

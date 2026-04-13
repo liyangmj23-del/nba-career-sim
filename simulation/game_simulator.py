@@ -61,6 +61,22 @@ class FullGameBoxScore:
     game_number: int
 
 
+_POS_NORMALIZE = {
+    # nba_api 返回的全拼 → 缩写
+    "GUARD": "G", "FORWARD": "F", "CENTER": "C",
+    "POINT GUARD": "PG", "SHOOTING GUARD": "SG",
+    "SMALL FORWARD": "SF", "POWER FORWARD": "PF",
+    "G": "G", "F": "F", "FC": "PF", "GF": "SF",
+    "PG": "PG", "SG": "SG", "SF": "SF", "PF": "PF",
+}
+
+
+def _normalize_pos(pos: str | None) -> str:
+    if not pos:
+        return "-"
+    return _POS_NORMALIZE.get(pos.upper().strip(), pos[:3])
+
+
 def _get_team_info(team_id: int) -> tuple[str, str]:
     """返回 (full_name, abbreviation)。team_id 为 None/0 时随机返回一支真实球队。"""
     if team_id:
@@ -103,39 +119,72 @@ _ROSTER_SELECT = """
     FROM players p
     JOIN player_attributes pa
       ON p.player_id = pa.player_id AND pa.season_year = ?
-    WHERE p.is_active = 1
+    WHERE p.is_active = 1 AND p.player_id > 0
+"""
+# 自定义球员（player_id < 0）单独查询，只用于 hero 球员匹配
+_CUSTOM_SELECT = """
+    SELECT p.player_id, p.full_name, p.position,
+           pa.overall_rating,
+           pa.speed, pa.strength, pa.vertical, pa.endurance,
+           pa.ball_handling, pa.shooting_2pt, pa.shooting_3pt,
+           pa.free_throw, pa.passing, pa.post_moves,
+           pa.perimeter_def, pa.interior_def,
+           pa.steal_tendency, pa.block_tendency,
+           pa.basketball_iq, pa.clutch_factor, pa.leadership,
+           pa.work_ethic, pa.media_handling,
+           pa.health, pa.morale, pa.fatigue
+    FROM players p
+    JOIN player_attributes pa
+      ON p.player_id = pa.player_id AND pa.season_year = ?
+    WHERE p.player_id < 0 AND p.is_active = 1
 """
 
 
-def _get_team_roster(team_id: int, season_year: int) -> list[dict]:
+def _get_team_roster(team_id: int, season_year: int,
+                     hero_player_id: int | None = None) -> list[dict]:
     """
     取球队名单及属性。
-    若该球队 DB 里关联的球员不足 5 人（常见于快速种子模式），
-    自动从全联盟随机抽取真实球员补足，确保 Box Score 显示真实姓名。
+    规则：
+    1. 只取真实NBA球员（player_id > 0）
+    2. 若不足8人（快速种子），从全联盟随机补充真实球员
+    3. hero_player_id 如果是自定义球员（<0），单独处理，不混入常规名单
     """
     with db() as conn:
-        # 1. 先尝试按 current_team_id 查询（自定义球员 player_id < 0 也包含在内）
+        # 1. 真实球员按球队查询
         rows = conn.execute(
-            _ROSTER_SELECT +
-            " AND p.current_team_id = ?"
-            " ORDER BY (CASE WHEN p.player_id < 0 THEN 1 ELSE 0 END) DESC,"
-            " pa.overall_rating DESC LIMIT 13",
+            _ROSTER_SELECT + " AND p.current_team_id = ?"
+            " ORDER BY pa.overall_rating DESC LIMIT 12",
             (season_year, team_id),
         ).fetchall()
 
-        # 2. 若球员不足（快速种子未赋球队ID），从全联盟随机补充
+        # 2. 若不足8人，从全联盟随机补充真实球员（不包括已在名单的）
         if len(rows) < 8:
-            existing_ids = tuple(r[0] for r in rows) or (-1,)
+            existing_ids = tuple(r[0] for r in rows) or (0,)
             placeholders = ",".join("?" * len(existing_ids))
             extra = conn.execute(
                 _ROSTER_SELECT +
                 f" AND p.player_id NOT IN ({placeholders})"
                 " ORDER BY RANDOM() LIMIT ?",
-                (season_year, *existing_ids, 13 - len(rows)),
+                (season_year, *existing_ids, 12 - len(rows)),
             ).fetchall()
             rows = list(rows) + list(extra)
 
-    return [dict(zip(_ROSTER_COLS, r)) for r in rows]
+    result = [dict(zip(_ROSTER_COLS, r)) for r in rows]
+
+    # 3. 如果 hero 是自定义球员（<0），单独查询并加到名单最前面
+    if hero_player_id and hero_player_id < 0:
+        with db() as conn:
+            hr = conn.execute(
+                _CUSTOM_SELECT + " AND p.player_id = ?",
+                (season_year, hero_player_id)
+            ).fetchone()
+        if hr:
+            hero_dict = dict(zip(_ROSTER_COLS, hr))
+            # 移除名单中可能存在的同名旧记录，hero只出现一次
+            result = [r for r in result if r["player_id"] != hero_player_id]
+            result.insert(0, hero_dict)
+
+    return result
 
 
 def _generate_team_box(
@@ -148,7 +197,8 @@ def _generate_team_box(
 ) -> TeamBoxScore:
     """生成一支球队的 Box Score。"""
     team_name, abbr = _get_team_info(team_id)
-    roster = _get_team_roster(team_id, season_year)
+    # 传入 hero_player_id，让 _get_team_roster 单独处理自定义球员，不污染真实名单
+    roster = _get_team_roster(team_id, season_year, hero_player_id)
 
     # 按位置顺序分配默认位置（球员 DB 中 position 可能为 None）
     _POS_ORDER = ["PG","SG","SF","PF","C","SG","SF","PF","C","PG","SF","SG","PF"]
@@ -164,7 +214,7 @@ def _generate_team_box(
         for r in roster:
             if r["player_id"] == hero_player_id:
                 hero_name = r["full_name"]
-                hero_pos  = r.get("position")
+                hero_pos  = _normalize_pos(r.get("position"))
                 break
         if not hero_name:
             # roster 里没有（自由球员/随机球队）→ 直接查 DB
@@ -214,7 +264,7 @@ def _generate_team_box(
             role=role,
             win_prob=0.7 if team_won else 0.3,
         )
-        pos = r.get("position") or _POS_ORDER[slot_counter % len(_POS_ORDER)]
+        pos = _normalize_pos(r.get("position")) or _POS_ORDER[slot_counter % len(_POS_ORDER)]
         slot_counter += 1
         rows.append(PlayerBoxRow(
             name         = r["full_name"],
