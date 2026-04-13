@@ -76,7 +76,15 @@ def generate_game(
     attrs: player_attributes 行的字段字典
     role:  1.0 首发 / 0.65 替补
     """
-    pos = position.upper() if position else "SF"
+    # 兼容全拼位置名（如 "Guard"/"Forward"/"Center" 来自 nba_api）
+    _POS_MAP = {
+        "GUARD": "SG", "FORWARD": "SF", "CENTER": "C",
+        "POINT GUARD": "PG", "SHOOTING GUARD": "SG",
+        "SMALL FORWARD": "SF", "POWER FORWARD": "PF",
+        "G": "SG", "F": "SF", "FC": "PF", "GF": "SG",
+    }
+    pos = (position or "SF").upper().strip()
+    pos = _POS_MAP.get(pos, pos)
     if pos not in _POSITION_FGA:
         pos = "SF"
 

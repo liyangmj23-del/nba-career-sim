@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}休赛期 · {{ player.full_name }}{% endblock %}
+{% block nav_extra %}
+<div class="nav-center"><span class="nav-player">{{ player.full_name }}</span> · 休赛期</div>
+{% endblock %}
+
+{% block content %}
+<div class="off-season-wrap">
+  <div style="text-align:center;padding:32px 0 24px">
+    <div style="font-size:13px;color:#64748b;letter-spacing:2px;text-transform:uppercase">休赛期</div>
+    <div style="font-size:28px;font-weight:800;color:#e2e8f0;margin:8px 0">赛季结束了。</div>
+    <div style="color:#64748b;font-size:14px;line-height:1.6">
+      这是一个属于休整和思考的时间。<br>
+      身体在恢复，下一个赛季在等待。
+    </div>
+  </div>
+
+  <!-- 休赛期叙事 -->
+  <div class="os-narrative">
+    <p>更衣室在几天前就清空了。</p>
+    <p>你有时候会在城市里走走，进入一家以前没去过的店，点一杯咖啡，坐着看窗外。
+    赛季结束了，那种持续了几个月的节奏感消失了，
+    身体不知道该怎么面对这种平静。</p>
+    <p>但你知道不会太久。训练馆会在夏天重新开门，新的赛季会再来。</p>
+  </div>
+
+  <!-- 休赛期选项 -->
+  <div class="os-options">
+    <div style="font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px">休赛期重点</div>
+
+    <div class="os-option" onclick="selectOption(this,'training')" data-option="training">
+      <div class="oo-icon">💪</div>
+      <div>
+        <div class="oo-title">强化训练</div>
+        <div class="oo-desc">专注于技术短板，换取下赛季属性提升（增加疲劳初始值）</div>
+        <div class="oo-effect">效果：技术属性 +2~4　疲劳初始 +10</div>
+      </div>
+    </div>
+
+    <div class="os-option" onclick="selectOption(this,'rest')" data-option="rest">
+      <div class="oo-icon">🏖️</div>
+      <div>
+        <div class="oo-title">充分休息</div>
+        <div class="oo-desc">让身体完全恢复，进入下赛季状态最佳</div>
+        <div class="oo-effect">效果：体力 +15　士气 +10　疲劳清零</div>
+      </div>
+    </div>
+
+    <div class="os-option" onclick="selectOption(this,'media')" data-option="media">
+      <div class="oo-icon">📺</div>
+      <div>
+        <div class="oo-title">品牌建设</div>
+        <div class="oo-desc">接受采访、商业活动，提升公众形象和媒体应对</div>
+        <div class="oo-effect">效果：媒体应对 +3　领导力 +1　士气 +5</div>
+      </div>
+    </div>
+
+    <div class="os-option" onclick="selectOption(this,'film')" data-option="film">
+      <div class="oo-icon">📹</div>
+      <div>
+        <div class="oo-title">研究录像</div>
+        <div class="oo-desc">深度研究对手和自身打法，提升篮球智商</div>
+        <div class="oo-effect">效果：篮球IQ +3　关键时刻 +1</div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" id="selected-option" value="rest">
+
+  <div style="text-align:center;margin-top:24px">
+    <form method="post" action="/game/{{ save.save_id }}/next-season" id="next-season-form">
+      <input type="hidden" name="off_season_choice" id="choice-hidden" value="rest">
+      <button type="submit" class="btn btn-advance" style="font-size:16px;padding:16px 40px">
+        进入下一赛季 →
+      </button>
+    </form>
+    <div style="color:#475569;font-size:12px;margin-top:12px">
+      年龄 +1　属性将根据年龄自动调整
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.off-season-wrap{max-width:600px;margin:0 auto;padding:24px}
+.os-narrative{background:#0d0d1a;border:1px solid #1e2040;border-radius:12px;padding:20px;margin-bottom:24px;font-size:14px;color:#94a3b8;line-height:1.8}
+.os-narrative p{margin-bottom:10px}
+.os-options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.os-option{display:flex;gap:16px;align-items:flex-start;background:#0d0d1a;border:1px solid #1e2040;border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.os-option:hover{border-color:#4dc3ff}
+.os-option.selected{border-color:#4dc3ff;background:#0d0d20}
+.oo-icon{font-size:24px;flex-shrink:0;width:36px;text-align:center}
+.oo-title{font-weight:700;font-size:14px;color:#e2e8f0;margin-bottom:4px}
+.oo-desc{font-size:12px;color:#64748b;margin-bottom:6px}
+.oo-effect{font-size:11px;color:#22c55e;font-weight:600}
+.btn-advance{background:linear-gradient(135deg,#0a2810,#0d3818);border:1px solid #1e6030;color:#4ade80;font-weight:800;border-radius:10px;cursor:pointer}
+</style>
+<script>
+// 默认选中休息
+document.querySelector('[data-option="rest"]').classList.add('selected');
+
+function selectOption(el, option) {
+  document.querySelectorAll('.os-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('selected-option').value = option;
+  document.getElementById('choice-hidden').value = option;
+}
+</script>
+{% endblock %}

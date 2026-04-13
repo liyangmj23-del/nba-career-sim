@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}{{ summary.season_year-1 }}-{{ (summary.season_year|string)[2:] }} 赛季总结{% endblock %}
+{% block nav_extra %}
+<div class="nav-center">
+  <span class="nav-player">{{ summary.player.full_name }}</span>
+  <span class="nav-sep">·</span>
+  <span style="color:#64748b">第 {{ summary.career_year }} 个赛季 · {{ summary.age }} 岁</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="summary-wrap" id="share-card-content">
+
+  <!-- 头部 -->
+  <div class="sum-header">
+    <div class="sum-year">{{ summary.season_year-1 }}-{{ (summary.season_year|string)[2:] }} 赛季回顾</div>
+    <div class="sum-player">{{ summary.player.full_name }}</div>
+    <div class="sum-meta">第 {{ summary.career_year }} 个赛季 · {{ summary.age }} 岁 · 生涯第 {{ summary.career.seasons }} 年</div>
+  </div>
+
+  <!-- 假如验证结果（最重要） -->
+  {% if summary.overrides %}
+  <div class="sum-card whatif-card">
+    <div class="card-title">⚡ 假如验证结果</div>
+    <div class="whatif-compare">
+      <div class="wc-col">
+        <div class="wc-label">你的假如设定</div>
+        {% for k, v in summary.overrides.items() %}
+        <div class="wc-val">{{ {'pts':'得分','reb':'篮板','ast':'助攻','stl':'抢断','blk':'盖帽'}[k] }}
+          <span style="color:#ffc107">{{ v }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="wc-arrow">→</div>
+      <div class="wc-col">
+        <div class="wc-label">本赛季实际均值</div>
+        {% if summary.season_stats %}
+        <div class="wc-val">得分 <span style="color:#4dc3ff">{{ summary.season_stats.pts }}</span></div>
+        <div class="wc-val">篮板 <span style="color:#22c55e">{{ summary.season_stats.reb }}</span></div>
+        <div class="wc-val">助攻 <span style="color:#eab308">{{ summary.season_stats.ast }}</span></div>
+        <div class="wc-val">抢断 <span style="color:#a855f7">{{ summary.season_stats.stl }}</span></div>
+        <div class="wc-val">盖帽 <span style="color:#f97316">{{ summary.season_stats.blk }}</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 打破历史记录 -->
+  {% if summary.records_broken %}
+  <div class="sum-card record-card">
+    <div class="card-title">💥 打破 NBA 历史记录</div>
+    {% for r in summary.records_broken %}
+    <div class="record-item">
+      <span class="record-stat">{{ r.stat }}</span>
+      <span class="record-val">{{ r.player_val }}</span>
+      <span class="record-arrow">超越</span>
+      <span class="record-old">{{ r.holder }} ({{ r.record_val }}) × {{ r.ratio }}倍</span>
+    </div>
+    {% endfor %}
+    {% if summary.record_tier == 'unprecedented' %}
+    <div class="record-tier unprecedented">⭐ 前无古人 — 超越所有已知的篮球认知</div>
+    {% elif summary.record_tier == 'legendary' %}
+    <div class="record-tier legendary">🟣 史诗级 — 多项数据同时突破历史极限</div>
+    {% elif summary.record_tier == 'historic' %}
+    <div class="record-tier historic">🔴 历史级 — 打破单项 NBA 历史记录</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- 本赛季数据 -->
+  {% if summary.season_stats %}
+  <div class="sum-card">
+    <div class="card-title">📊 本赛季数据</div>
+    <div class="stats-row">
+      <div class="stat-box"><span class="sb-val cyan">{{ summary.season_stats.pts }}</span><span class="sb-lbl">得分</span></div>
+      <div class="stat-box"><span class="sb-val green">{{ summary.season_stats.reb }}</span><span class="sb-lbl">篮板</span></div>
+      <div class="stat-box"><span class="sb-val yellow">{{ summary.season_stats.ast }}</span><span class="sb-lbl">助攻</span></div>
+      <div class="stat-box"><span class="sb-val purple">{{ summary.season_stats.stl }}</span><span class="sb-lbl">抢断</span></div>
+      <div class="stat-box"><span class="sb-val orange">{{ summary.season_stats.blk }}</span><span class="sb-lbl">盖帽</span></div>
+      <div class="stat-box"><span class="sb-val">{{ summary.season_stats.fg }}%</span><span class="sb-lbl">FG%</span></div>
+      <div class="stat-box"><span class="sb-val">{{ summary.season_stats.fg3 }}%</span><span class="sb-lbl">3P%</span></div>
+      <div class="stat-box"><span class="sb-val">{{ summary.season_stats.ft }}%</span><span class="sb-lbl">FT%</span></div>
+    </div>
+    <div style="margin-top:12px;color:#64748b;font-size:13px">
+      出场 {{ summary.season_stats.gp }} 场
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 球队影响 -->
+  <div class="sum-card">
+    <div class="card-title">🏀 球队影响</div>
+    <div class="team-impact-row">
+      <div>
+        <span style="font-size:28px;font-weight:900;color:#4dc3ff">{{ summary.proj_team_wins }}</span>
+        <span style="color:#64748b;font-size:13px"> 胜</span>
+      </div>
+      <div style="color:#64748b;font-size:13px">
+        你的影响力为球队带来了
+        <span style="color:{% if summary.player_win_bonus > 0 %}#22c55e{% else %}#ef4444{% endif %};font-weight:700">
+          {% if summary.player_win_bonus > 0 %}+{% endif %}{{ summary.player_win_bonus }}
+        </span> 场额外胜利
+      </div>
+    </div>
+    {% if summary.playoff_qualified %}
+    <div style="color:#22c55e;font-weight:700;margin-top:8px">✅ 球队进入季后赛</div>
+    {% else %}
+    <div style="color:#ef4444;margin-top:8px">❌ 未能进入季后赛（投影 {{ summary.proj_team_wins }} 胜不足）</div>
+    {% endif %}
+  </div>
+
+  <!-- 本赛季荣誉 -->
+  {% if summary.awards %}
+  <div class="sum-card">
+    <div class="card-title">🏆 本赛季荣誉</div>
+    <div class="awards-list">
+      {% for a in summary.awards %}
+      <div class="award-item">
+        {% if 'mvp' in a.award_type %}🏅
+        {% elif 'champion' in a.award_type %}🏆
+        {% elif 'allstar' in a.award_type %}⭐
+        {% elif 'dpoy' in a.award_type %}🛡️
+        {% elif 'title' in a.award_type %}📊
+        {% elif 'unprecedented' in a.award_type or 'quintuple' in a.award_type %}✨
+        {% else %}🎖️{% endif %}
+        {{ a.description }}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="sum-card" style="color:#475569;text-align:center">本赛季未获得任何个人荣誉</div>
+  {% endif %}
+
+  <!-- 历史地位 -->
+  <div class="sum-card">
+    <div class="card-title">📈 历史地位（当前）</div>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div>
+        <div style="font-size:22px;font-weight:800;color:#ffc107">{{ summary.history.tier }}</div>
+        <div style="color:#64748b;font-size:12px">HOF积分：{{ summary.history.hof_score|round|int }}</div>
+      </div>
+      <div style="color:#64748b;font-size:13px">
+        生涯 {{ summary.career.seasons }} 赛季 / {{ summary.career.games }} 场
+      </div>
+    </div>
+  </div>
+
+  <!-- 关键事件 -->
+  {% if summary.key_events %}
+  <div class="sum-card">
+    <div class="card-title">⚡ 本赛季关键事件</div>
+    {% for e in summary.key_events %}
+    <div class="key-event-item">
+      <span class="ke-week">第{{ e.week_number }}周</span>
+      <span class="ke-title">{{ e.title }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div><!-- /share-card-content -->
+
+<!-- 退役提示 -->
+{% if retirement.should_suggest %}
+<div class="retirement-notice {% if retirement.force %}force{% endif %}">
+  {% if retirement.force %}⚠️ 职业生涯已无法继续{% else %}💭 退役时机参考{% endif %}
+  <p>{{ retirement.reason }}</p>
+</div>
+{% endif %}
+
+<!-- 操作按钮 -->
+<div class="sum-actions">
+  <button class="btn btn-share" onclick="generateShareCard()">📸 生成分享图</button>
+
+  {% if retirement.force %}
+    <a class="btn btn-warning" href="/game/{{ summary.save.save_id }}/career-end">查看生涯总结</a>
+  {% else %}
+    {% if summary.playoff_qualified %}
+    <a class="btn btn-primary" href="/game/{{ summary.save.save_id }}/playoffs">🏆 进入季后赛</a>
+    {% endif %}
+    <a class="btn btn-advance" href="/game/{{ summary.save.save_id }}/off-season">进入休赛期 →</a>
+    {% if retirement.should_suggest %}
+    <a class="btn btn-ghost" href="/game/{{ summary.save.save_id }}/career-end">宣布退役</a>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.summary-wrap{max-width:800px;margin:0 auto;padding:24px}
+.sum-header{text-align:center;padding:32px 0 24px}
+.sum-year{font-size:14px;color:#64748b;letter-spacing:2px;text-transform:uppercase}
+.sum-player{font-size:36px;font-weight:900;color:#4dc3ff;margin:8px 0}
+.sum-meta{color:#64748b;font-size:13px}
+.sum-card{background:#0d0d1a;border:1px solid #1e2040;border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1e2040}
+.whatif-card{border-color:#ffc107}
+.whatif-compare{display:flex;align-items:center;gap:24px}
+.wc-col{flex:1}
+.wc-label{font-size:11px;color:#64748b;margin-bottom:8px;text-transform:uppercase}
+.wc-val{font-size:14px;margin-bottom:4px}
+.wc-arrow{font-size:24px;color:#ffc107;flex-shrink:0}
+.stats-row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;text-align:center}
+.stat-box{background:#12122a;border-radius:8px;padding:10px 4px}
+.sb-val{display:block;font-size:20px;font-weight:800}
+.sb-lbl{display:block;font-size:10px;color:#64748b;margin-top:3px}
+.sb-val.cyan{color:#4dc3ff}
+.sb-val.green{color:#22c55e}
+.sb-val.yellow{color:#eab308}
+.sb-val.purple{color:#a855f7}
+.sb-val.orange{color:#f97316}
+.record-card{border-color:#ef4444}
+.record-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1e2040;font-size:13px}
+.record-stat{font-weight:700;color:#ef4444;width:40px}
+.record-val{font-size:18px;font-weight:900;color:#ffc107}
+.record-arrow{color:#64748b}
+.record-old{color:#64748b;font-size:12px}
+.record-tier{margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center}
+.unprecedented{background:rgba(168,85,247,.1);border:1px solid #a855f7;color:#c084fc}
+.legendary{background:rgba(168,85,247,.08);border:1px solid #7c3aed;color:#a78bfa}
+.historic{background:rgba(239,68,68,.08);border:1px solid #ef4444;color:#f87171}
+.team-impact-row{display:flex;align-items:center;gap:24px}
+.awards-list{display:flex;flex-direction:column;gap:8px}
+.award-item{padding:8px 12px;background:#12122a;border-radius:8px;font-size:13px;font-weight:600}
+.key-event-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #0a0a12;font-size:13px}
+.ke-week{color:#4080c0;font-size:11px;width:48px;flex-shrink:0}
+.ke-title{color:#e2e8f0}
+.sum-actions{max-width:800px;margin:0 auto;padding:0 24px 40px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn-share{background:#1a1000;border:1px solid #ffc107;color:#ffc107;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-advance{background:linear-gradient(135deg,#0a2810,#0d3818);border:1px solid #1e6030;color:#4ade80;font-weight:800;padding:12px 24px}
+.retirement-notice{max-width:800px;margin:0 auto 16px;padding:14px 20px;border-radius:8px;background:#1a0800;border:1px solid #f97316;color:#f97316;font-size:13px}
+.retirement-notice.force{border-color:#ef4444;color:#ef4444;background:#1a0000}
+.retirement-notice p{margin:4px 0 0;color:#94a3b8}
+@media(max-width:600px){.stats-row{grid-template-columns:repeat(4,1fr)}.whatif-compare{flex-direction:column}.wc-arrow{transform:rotate(90deg)}}
+</style>
+<script>
+async function generateShareCard() {
+  const el = document.getElementById('share-card-content');
+  if (!window.html2canvas) {
+    alert('正在加载分享功能...');
+    return;
+  }
+  const canvas = await html2canvas(el, {
+    backgroundColor: '#080810', scale: 2, useCORS: true,
+    logging: false,
+  });
+  const link = document.createElement('a');
+  link.download = `nba-whatif-season-{{ summary.season_year }}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin></script>
+{% endblock %}

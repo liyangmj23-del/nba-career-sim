@@ -153,7 +153,7 @@
   <!-- ══ 右侧：操作区 ══════════════════════════════════════════════════════ -->
   <aside class="action-panel">
     {% if season_done %}
-    <div class="season-done-badge">赛季结束</div>
+    <a class="btn-season-end" href="/game/{{ save.save_id }}/season-end">查看赛季总结 →</a>
     {% else %}
     <button class="btn btn-advance" id="btn-advance" onclick="advanceWeek()">
       推进一周
@@ -208,6 +208,10 @@
 {% endblock %}
 
 {% block scripts %}
+<style>
+.btn-season-end{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#1a1000,#2a2000);border:2px solid #ffc107;border-radius:10px;color:#ffc107;font-weight:800;font-size:14px;text-align:center;cursor:pointer;text-decoration:none}
+.btn-season-end:hover{background:linear-gradient(135deg,#2a2000,#3a3000)}
+</style>
 <script>
 const SAVE_ID = {{ save.save_id }};
 const PLAYER_ID = {{ player.player_id }};

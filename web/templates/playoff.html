@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}季后赛 · {{ player.full_name }}{% endblock %}
+{% block nav_extra %}
+<div class="nav-center"><span class="nav-player">{{ player.full_name }}</span> · 季后赛</div>
+{% endblock %}
+
+{% block content %}
+<div class="playoff-wrap">
+  <div class="playoff-header">
+    <div class="ph-year">{{ season_year-1 }}-{{ (season_year|string)[2:] }} 季后赛</div>
+    {% if result.champion %}
+    <div class="ph-result champion">🏆 NBA 总冠军</div>
+    {% else %}
+    <div class="ph-result">止步 {{ ['首轮','次轮','分区决赛','总决赛'][result.reached_round] }}</div>
+    {% endif %}
+  </div>
+
+  <!-- 季后赛路径 -->
+  <div class="rounds-timeline">
+    {% for r in result.rounds %}
+    <div class="round-card {% if r.won %}won{% else %}lost{% endif %}">
+      <div class="rc-header">
+        <span class="rc-name">{{ r.round_name }}</span>
+        <span class="rc-score {% if r.won %}win{% else %}loss{% endif %}">
+          {{ r.my_wins }}-{{ r.opp_wins }}
+        </span>
+      </div>
+      <div class="rc-narrative">{{ r.narrative }}</div>
+      {% if r.is_seven and r.won %}
+      <div class="rc-badge g7">G7逆境求生</div>
+      {% elif r.is_sweep and r.won %}
+      <div class="rc-badge sweep">横扫晋级</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- 主叙事 -->
+  <div class="playoff-narrative">
+    <div class="pn-text">{{ result.narrative }}</div>
+    {% if result.key_moment %}
+    <div class="pn-moment">关键时刻：{{ result.key_moment }}</div>
+    {% endif %}
+  </div>
+
+  <!-- 冠军特效 -->
+  {% if result.champion %}
+  <div class="champion-banner">
+    <div style="font-size:64px">🏆</div>
+    <div class="cb-title">NBA 总冠军</div>
+    <div class="cb-sub">{{ season_year-1 }}-{{ (season_year|string)[2:] }} 赛季</div>
+  </div>
+  {% endif %}
+
+  <div class="playoff-actions">
+    <a class="btn btn-primary" href="/game/{{ save.save_id }}/off-season">进入休赛期 →</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.playoff-wrap{max-width:700px;margin:0 auto;padding:24px}
+.playoff-header{text-align:center;padding:24px 0}
+.ph-year{font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:2px}
+.ph-result{font-size:32px;font-weight:900;color:#e2e8f0;margin:8px 0}
+.ph-result.champion{color:#ffc107}
+.rounds-timeline{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.round-card{background:#0d0d1a;border:1px solid #1e2040;border-radius:10px;padding:16px}
+.round-card.won{border-color:#22c55e}
+.round-card.lost{border-color:#ef4444;opacity:.8}
+.rc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rc-name{font-weight:700;font-size:14px}
+.rc-score{font-size:20px;font-weight:900}
+.rc-score.win{color:#22c55e}
+.rc-score.loss{color:#ef4444}
+.rc-narrative{font-size:13px;color:#94a3b8;line-height:1.6}
+.rc-badge{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.rc-badge.g7{background:rgba(234,179,8,.1);border:1px solid #eab308;color:#eab308}
+.rc-badge.sweep{background:rgba(77,195,255,.1);border:1px solid #4dc3ff;color:#4dc3ff}
+.playoff-narrative{background:#0d0d1a;border:1px solid #2a3060;border-radius:12px;padding:20px;margin-bottom:24px}
+.pn-text{font-size:14px;color:#e2e8f0;line-height:1.8;white-space:pre-line}
+.pn-moment{margin-top:12px;font-size:12px;color:#64748b;padding-top:12px;border-top:1px solid #1e2040}
+.champion-banner{text-align:center;padding:32px;background:linear-gradient(135deg,#1a1000,#2a2000);border:2px solid #ffc107;border-radius:16px;margin-bottom:24px}
+.cb-title{font-size:36px;font-weight:900;color:#ffc107;margin:8px 0}
+.cb-sub{color:#94a3b8;font-size:14px}
+.playoff-actions{text-align:center}
+</style>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}生涯谢幕 · {{ summary.player.full_name }}{% endblock %}
+{% block nav_extra %}
+<div class="nav-center" style="color:#ffc107;font-weight:700">🏀 生涯谢幕</div>
+{% endblock %}
+
+{% block content %}
+<div class="career-wrap" id="career-share-content">
+
+  <!-- 头部 -->
+  <div class="ce-header">
+    <div style="font-size:48px;margin-bottom:8px">🏀</div>
+    <div class="ce-title">{{ summary.player.full_name }}</div>
+    <div class="ce-years">{{ summary.from_season }} — {{ summary.to_season }}</div>
+    <div class="ce-meta">{{ summary.career_years }} 个赛季 · 退役年龄 {{ summary.final_age }} 岁</div>
+  </div>
+
+  <!-- 假如设定回顾 -->
+  {% if summary.overrides %}
+  <div class="ce-card whatif-card">
+    <div class="card-title">⚡ 你的假如设定</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      {% for k, v in summary.overrides.items() %}
+      <div style="text-align:center">
+        <div style="font-size:28px;font-weight:900;color:#ffc107">{{ v }}</div>
+        <div style="font-size:11px;color:#64748b">{{ {'pts':'得分','reb':'篮板','ast':'助攻','stl':'抢断','blk':'盖帽'}[k] }}/场</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="color:#64748b;font-size:12px;margin-top:12px">（考虑年龄衰退后的长期平均值会低于设定值）</div>
+  </div>
+  {% endif %}
+
+  <!-- 生涯总数据 -->
+  <div class="ce-card">
+    <div class="card-title">📊 生涯总数据</div>
+    <div class="ce-stats">
+      {% set career = summary.career %}
+      <div class="ces-item">
+        <div class="ces-val cyan">{{ "{:,}".format(career.pts) }}</div>
+        <div class="ces-lbl">总得分</div>
+        <div class="ces-rank">历史参考</div>
+      </div>
+      <div class="ces-item">
+        <div class="ces-val green">{{ "{:,}".format(career.reb) }}</div>
+        <div class="ces-lbl">总篮板</div>
+      </div>
+      <div class="ces-item">
+        <div class="ces-val yellow">{{ "{:,}".format(career.ast) }}</div>
+        <div class="ces-lbl">总助攻</div>
+      </div>
+      <div class="ces-item">
+        <div class="ces-val purple">{{ "{:,}".format(career.stl) }}</div>
+        <div class="ces-lbl">总抢断</div>
+      </div>
+      <div class="ces-item">
+        <div class="ces-val orange">{{ "{:,}".format(career.blk) }}</div>
+        <div class="ces-lbl">总盖帽</div>
+      </div>
+      <div class="ces-item">
+        <div class="ces-val">{{ career.games }}</div>
+        <div class="ces-lbl">出场场次</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 与历史记录对比 -->
+  <div class="ce-card">
+    <div class="card-title">🏛️ 生涯数据 vs NBA 历史记录</div>
+    {% for comp in summary.history.comparisons %}
+    {% set pct = comp.pct %}
+    {% set col = '#ffc107' if pct >= 100 else ('#4dc3ff' if pct >= 70 else '#94a3b8') %}
+    <div class="comp-row">
+      <div class="cr-label">{{ comp.label }}</div>
+      <div class="cr-val" style="color:{{ col }}">{{ "{:,}".format(comp.value) }}</div>
+      <div class="cr-bar-wrap"><div class="cr-bar" style="width:{{ [pct,100]|min }}%;background:{{ col }}"></div></div>
+      <div class="cr-pct" style="color:{{ col }}">{{ pct }}%</div>
+      <div class="cr-holder">{{ comp.holder }}</div>
+      {% if comp.status %}<div class="cr-status" style="color:{{ col }}">{{ comp.status }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- 生涯荣誉 -->
+  <div class="ce-card">
+    <div class="card-title">🏆 生涯荣誉</div>
+    <div class="awards-grid-ce">
+      {% for award_type, cnt in summary.awards.items() %}
+      {% if cnt > 0 %}
+      {% set labels = {'mvp':'常规赛MVP','champion':'NBA总冠军','allstar':'全明星','allnba_1':'年度一队','allnba_2':'年度二队','dpoy':'最佳防守球员','scoring_title':'得分王','rebounding_title':'篮板王','assist_title':'助攻王','steals_title':'抢断王','blocks_title':'盖帽王','triple_double_avg':'赛季场均三双','quadruple_double_avg':'赛季场均四双','quintuple_double_avg':'赛季场均五双','unprecedented_record':'打破历史记录'} %}
+      <div class="award-ce" style="border-color:{% if cnt >= 5 %}#ffc107{% elif cnt >= 3 %}#4dc3ff{% else %}#1e2040{% endif %}">
+        <div class="ace-cnt" style="color:{% if cnt >= 5 %}#ffc107{% elif cnt >= 3 %}#4dc3ff{% else %}#94a3b8{% endif %}">{{ cnt }}</div>
+        <div class="ace-lbl">{{ labels.get(award_type, award_type) }}</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 历史地位 -->
+  <div class="ce-card history-card">
+    <div class="card-title">⭐ 历史地位</div>
+    <div class="history-tier-ce">{{ summary.history.tier }}</div>
+    <div class="history-score-ce">HOF 积分：{{ summary.history.hof_score|round|int }}</div>
+
+    {% if summary.history.milestones %}
+    <div style="margin-top:16px">
+      {% for m in summary.history.milestones %}
+      <div class="milestone-ce">★ {{ m }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 结语叙事 -->
+    {% set hof = summary.history.hof_score %}
+    <div class="ce-closing">
+    {% if hof >= 250 %}
+    他不属于任何历史横比框架。他是一个独立的坐标系。
+    当人们谈论他的数字的时候，总是需要先停下来解释"这些数字意味着什么"——
+    因为没有其他的参照物。
+    {% elif hof >= 150 %}
+    他的名字将永远在NBA历史最伟大球员的讨论里。
+    不是争议，是事实。他的数据和荣誉共同构成了一个无法忽视的证明。
+    {% elif hof >= 70 %}
+    他的名字将进入名人堂。
+    这是对他整个职业生涯的认可，对那些早起训练、带伤上场、做出艰难抉择的认可。
+    {% elif hof >= 30 %}
+    他打了很长时间的球，打过很多重要的比赛。
+    这份经历本身就值得被记录。
+    {% else %}
+    生涯短暂，但走过了这一段，已经不容易了。
+    {% endif %}
+    </div>
+  </div>
+
+  <!-- 关键抉择回顾 -->
+  {% if summary.choice_events %}
+  <div class="ce-card">
+    <div class="card-title">💭 生涯关键抉择</div>
+    {% for e in summary.choice_events %}
+    <div class="choice-ce">
+      <span class="cc-year">第{{ e.week_number }}周</span>
+      <span class="cc-title">{{ e.title }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 生涯传奇时刻 -->
+  {% if summary.legendary %}
+  <div class="ce-card">
+    <div class="card-title">⚡ 生涯传奇时刻</div>
+    {% for e in summary.legendary %}
+    <div class="legendary-ce">{{ e.title }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div><!-- /career-share-content -->
+
+<!-- 操作 -->
+<div class="ce-actions">
+  <button class="btn btn-share" onclick="generateCareerCard()">📸 生成生涯报告图</button>
+  <a class="btn btn-primary" href="/">开始新的假如 →</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.career-wrap{max-width:800px;margin:0 auto;padding:24px;background:#080810}
+.ce-header{text-align:center;padding:40px 0 32px}
+.ce-title{font-size:40px;font-weight:900;color:#ffc107}
+.ce-years{font-size:16px;color:#64748b;margin:8px 0}
+.ce-meta{font-size:13px;color:#475569}
+.ce-card{background:#0d0d1a;border:1px solid #1e2040;border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1e2040;font-weight:600}
+.whatif-card{border-color:#ffc107}
+.ce-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;text-align:center}
+.ces-item{background:#12122a;border-radius:8px;padding:12px 4px}
+.ces-val{font-size:22px;font-weight:900}
+.ces-lbl{font-size:10px;color:#64748b;margin-top:4px}
+.ces-rank{font-size:9px;color:#475569}
+.ces-val.cyan{color:#4dc3ff}
+.ces-val.green{color:#22c55e}
+.ces-val.yellow{color:#eab308}
+.ces-val.purple{color:#a855f7}
+.ces-val.orange{color:#f97316}
+.comp-row{margin-bottom:12px}
+.cr-label{font-size:12px;color:#94a3b8;margin-bottom:4px}
+.cr-val{font-size:20px;font-weight:800}
+.cr-bar-wrap{background:#12122a;border-radius:3px;height:5px;margin:6px 0}
+.cr-bar{height:100%;border-radius:3px}
+.cr-pct{font-size:11px;font-weight:600;display:inline}
+.cr-holder{font-size:11px;color:#475569;display:inline;margin-left:8px}
+.cr-status{font-size:12px;font-weight:700;margin-top:2px}
+.awards-grid-ce{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.award-ce{background:#0a0a15;border:1px solid;border-radius:8px;padding:12px;text-align:center}
+.ace-cnt{font-size:28px;font-weight:900}
+.ace-lbl{font-size:11px;color:#64748b;margin-top:4px}
+.history-card{border-color:#ffc107}
+.history-tier-ce{font-size:32px;font-weight:900;color:#ffc107}
+.history-score-ce{color:#64748b;margin-top:4px;font-size:13px}
+.milestone-ce{padding:6px 0;color:#ffc107;font-size:13px;border-bottom:1px solid #1e2040}
+.ce-closing{margin-top:16px;font-size:14px;color:#94a3b8;line-height:1.8;padding:12px;background:#0a0a12;border-radius:8px}
+.choice-ce{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #0a0a12;font-size:13px}
+.cc-year{color:#4080c0;font-size:11px;width:50px;flex-shrink:0}
+.cc-title{color:#e2e8f0}
+.legendary-ce{padding:8px 12px;background:#12122a;border-radius:6px;margin-bottom:6px;font-size:13px;color:#ffc107;font-weight:600}
+.ce-actions{max-width:800px;margin:0 auto;padding:0 24px 40px;display:flex;gap:12px;justify-content:center}
+.btn-share{background:#1a1000;border:1px solid #ffc107;color:#ffc107;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+@media(max-width:600px){.ce-stats{grid-template-columns:repeat(3,1fr)}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin></script>
+<script>
+async function generateCareerCard() {
+  const el = document.getElementById('career-share-content');
+  if (!window.html2canvas) { alert('加载中...'); return; }
+  const canvas = await html2canvas(el, {
+    backgroundColor: '#080810', scale: 2, useCORS: true, logging: false,
+  });
+  const link = document.createElement('a');
+  link.download = `nba-career-end.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+{% endblock %}

@@ -220,9 +220,12 @@ def _fire_event(ev: EventDefinition, ctx: dict) -> FiredEvent | None:
     narrative = narrative.replace("{pts}", str(int(ctx.get("week_high_pts", 0))))
 
     attr_delta = {}
-    for eff in ev.attr_effects:
-        d = _resolve_delta(eff.delta)
-        attr_delta[eff.attr] = d
+    # 选择事件的效果由玩家选择后再应用，这里不预先应用
+    # 普通事件直接应用 attr_effects
+    if not ev.choices:
+        for eff in ev.attr_effects:
+            d = _resolve_delta(eff.delta)
+            attr_delta[eff.attr] = d
 
     return FiredEvent(
         event_def=ev,

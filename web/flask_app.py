@@ -252,10 +252,19 @@ def apply_choice(save_id):
     skip = {"attr_id","player_id","season_year"}
     attrs = {k: getattr(attr, k) for k in attr.__dataclass_fields__ if k not in skip}
     delta = {}
-    for a_name, d in opt.get("effects", []):
-        resolved = random.randint(d[0], d[1]) if isinstance(d, list) else d
-        lo, hi   = (0, 100) if a_name in ("health","morale","fatigue") else (1, 99)
-        new_val  = max(lo, min(hi, attrs.get(a_name, 50) + resolved))
+    for effect in opt.get("effects", []):
+        # effects 从 Python 序列化为 JSON 时 tuple 变成 list，需要兼容两种
+        if not (isinstance(effect, (list, tuple)) and len(effect) == 2):
+            continue
+        a_name, d = effect[0], effect[1]
+        if isinstance(d, (list, tuple)) and len(d) == 2:
+            resolved = random.randint(int(d[0]), int(d[1]))
+        elif isinstance(d, (int, float)):
+            resolved = int(d)
+        else:
+            continue
+        lo, hi  = (0, 100) if a_name in ("health","morale","fatigue") else (1, 99)
+        new_val = max(lo, min(hi, attrs.get(a_name, 50) + resolved))
         delta[a_name] = resolved
         attrs[a_name]  = new_val
     if delta:
@@ -485,6 +494,255 @@ def box_score(save_id, game_num):
         }
     return jsonify({"home": team_dict(box.home), "away": team_dict(box.away),
                     "week": game_week, "gnum": game_num})
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 假如场景库
+# ══════════════════════════════════════════════════════════════════════════════
+
+PRESET_SCENARIOS = [
+    {
+        "id": "wilt",
+        "name": "Wilt 的统治",
+        "desc": "NBA历史最骇人的统治性数据，放在今天意味着什么？",
+        "tag": "经典争议",
+        "stats": {"pts": 50, "reb": 30, "ast": 5, "stl": 1, "blk": 2},
+        "icon": "👑",
+    },
+    {
+        "id": "jordan",
+        "name": "乔丹的效率",
+        "desc": "最接近完美均衡的得分手，历史地位会排在哪里？",
+        "tag": "经典争议",
+        "stats": {"pts": 35, "reb": 6, "ast": 6, "stl": 3, "blk": 1},
+        "icon": "🐐",
+    },
+    {
+        "id": "magic",
+        "name": "Magic 的组织",
+        "desc": "最接近完美的大个控卫，生涯会留下什么？",
+        "tag": "经典争议",
+        "stats": {"pts": 18, "reb": 8, "ast": 12, "stl": 2, "blk": 0},
+        "icon": "🎩",
+    },
+    {
+        "id": "five_double",
+        "name": "完美五双",
+        "desc": "10/10/10/10/10——这种球员真的存在，联盟会发生什么？",
+        "tag": "假如极限",
+        "stats": {"pts": 10, "reb": 10, "ast": 10, "stl": 10, "blk": 10},
+        "icon": "👽",
+    },
+    {
+        "id": "scorer",
+        "name": "得分机器",
+        "desc": "场均60分，他能成为史上最伟大得分手吗？",
+        "tag": "假如极限",
+        "stats": {"pts": 60, "reb": 5, "ast": 3, "stl": 1, "blk": 0},
+        "icon": "💥",
+    },
+    {
+        "id": "defender",
+        "name": "防守怪兽",
+        "desc": "10断10帽，纯防守型外星人，历史地位是什么？",
+        "tag": "假如极限",
+        "stats": {"pts": 8, "reb": 12, "ast": 2, "stl": 10, "blk": 10},
+        "icon": "🛡️",
+    },
+    {
+        "id": "playmaker",
+        "name": "完美组织者",
+        "desc": "场均20助攻，他能成为史上最佳控卫吗？",
+        "tag": "假如极限",
+        "stats": {"pts": 5, "reb": 6, "ast": 20, "stl": 3, "blk": 0},
+        "icon": "🎯",
+    },
+    {
+        "id": "big_man",
+        "name": "统治型中锋",
+        "desc": "25分25板8帽，内线至高无上的统治。",
+        "tag": "假如极限",
+        "stats": {"pts": 25, "reb": 25, "ast": 3, "stl": 1, "blk": 8},
+        "icon": "🏔️",
+    },
+]
+
+
+@app.route("/scenarios")
+def scenarios():
+    return render_template("scenarios.html", scenarios=PRESET_SCENARIOS)
+
+
+@app.route("/game/<int:save_id>/load-scenario", methods=["POST"])
+def load_scenario(save_id):
+    """加载预设场景到当前存档的 stat_overrides。"""
+    data = request.get_json()
+    stats = data.get("stats", {})
+    save = save_repo.get_by_id(save_id)
+    if not save:
+        return jsonify({"ok": False})
+    state = dict(save.state_json)
+    if stats:
+        state["stat_overrides"] = {k: float(v) for k, v in stats.items()}
+    save_repo.update(save_id, {"state_json": state})
+    return jsonify({"ok": True})
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 赛季总结
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route("/game/<int:save_id>/season-end")
+def season_end(save_id):
+    save = save_repo.get_by_id(save_id)
+    if not save:
+        return redirect(url_for("menu"))
+    player = player_repo.get_by_id(save.player_id)
+    season_year = save.current_season  # 刚结束的赛季
+
+    from simulation.season_manager import get_season_summary, check_retirement
+    from simulation.achievement_tracker import evaluate_season
+
+    # 评估荣誉（如果还没评估过）
+    season_stats_raw = _get_season_stats(player.player_id, season_year)
+    if season_stats_raw:
+        evaluate_season(save_id, player.player_id, season_year, season_stats_raw)
+
+    summary = get_season_summary(save_id, player.player_id, season_year)
+    retirement = check_retirement(save_id, player.player_id)
+    return render_template("season_summary.html",
+        summary=summary, retirement=retirement,
+        CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 季后赛
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route("/game/<int:save_id>/playoffs")
+def playoffs(save_id):
+    save = save_repo.get_by_id(save_id)
+    if not save:
+        return redirect(url_for("menu"))
+    player = player_repo.get_by_id(save.player_id)
+    season_year = save.current_season
+
+    # 计算基础胜率和影响力
+    season_stats = _get_season_stats(player.player_id, season_year)
+    from simulation.player_impact import compute_impact, adjusted_win_prob
+    from simulation.team_simulator import _team_rating, win_probability, _ALL_TEAM_IDS
+    import random as _rnd
+
+    my_team_id = save.current_team_id
+    try:
+        my_rating = _team_rating(my_team_id, season_year) if my_team_id else 55.0
+    except Exception:
+        my_rating = 55.0
+    opp_rating = 60.0  # 季后赛对手平均实力偏强
+
+    impact = compute_impact(
+        season_stats.get("pts",0), season_stats.get("reb",0),
+        season_stats.get("ast",0), season_stats.get("stl",0),
+        season_stats.get("blk",0), season_stats.get("tov",2.5),
+    )
+    base_wp = win_probability(my_rating, opp_rating)
+
+    from simulation.playoff_simulator import simulate_playoffs
+    result = simulate_playoffs(save_id, player.player_id, season_year, base_wp, impact)
+
+    # 更新存档：记录季后赛结果
+    state = dict(save.state_json)
+    pyr   = state.setdefault("playoff_results", [])
+    pyr.append({"year": season_year, "result": result["reached_round"],
+                 "champion": result["champion"]})
+    if result["champion"]:
+        state["ring_count"] = state.get("ring_count", 0) + 1
+
+    # 荣誉：冠军
+    if result["champion"]:
+        from simulation.achievement_tracker import evaluate_season
+        from database.repositories.event_log_repo import EventLogRepository
+        event_repo2 = EventLogRepository()
+        from database.connection import db as getdb2
+        with getdb2() as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO awards (save_id,player_id,season_year,award_type,description)"
+                " VALUES (?,?,?,?,?)",
+                (save_id, player.player_id, season_year,
+                 "champion", f"NBA 总冠军（{season_year-1}-{str(season_year)[2:]}赛季）")
+            )
+
+    save_repo.update(save_id, {"state_json": state})
+
+    return render_template("playoff.html",
+        save=save, player=player, result=result,
+        season_year=season_year, CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 休赛期 & 进入下一赛季
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route("/game/<int:save_id>/off-season")
+def off_season(save_id):
+    save = save_repo.get_by_id(save_id)
+    if not save:
+        return redirect(url_for("menu"))
+    player = player_repo.get_by_id(save.player_id)
+    return render_template("off_season.html",
+        save=save, player=player,
+        CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+
+
+@app.route("/game/<int:save_id>/next-season", methods=["POST"])
+def next_season(save_id):
+    """执行年末处理，进入下一赛季。"""
+    save = save_repo.get_by_id(save_id)
+    if not save:
+        return redirect(url_for("menu"))
+
+    from simulation.season_manager import apply_year_end
+    season_year = save.current_season
+    apply_year_end(save.player_id, save_id, season_year)
+    return redirect(url_for("game", save_id=save_id))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 退役 & 生涯总结
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route("/game/<int:save_id>/retire", methods=["POST"])
+def retire(save_id):
+    save_repo.update(save_id, {"current_week": 999})  # 标记已退役
+    return redirect(url_for("career_end", save_id=save_id))
+
+
+@app.route("/game/<int:save_id>/career-end")
+def career_end(save_id):
+    save = save_repo.get_by_id(save_id)
+    if not save:
+        return redirect(url_for("menu"))
+    player = player_repo.get_by_id(save.player_id)
+    from simulation.season_manager import get_career_end_summary
+    summary = get_career_end_summary(save_id, player.player_id)
+    return render_template("career_end.html", summary=summary,
+                           CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 存档管理
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route("/saves/<int:save_id>/delete", methods=["POST"])
+def delete_save(save_id):
+    with getdb() as conn:
+        conn.execute("DELETE FROM event_log WHERE save_id=?", (save_id,))
+        conn.execute("DELETE FROM awards WHERE save_id=?", (save_id,))
+        conn.execute("DELETE FROM save_states WHERE save_id=?", (save_id,))
+    return redirect(url_for("menu"))
+
+
+@app.route("/saves/<int:save_id>/rename", methods=["POST"])
+def rename_save(save_id):
+    name = request.form.get("name", "").strip()
+    if name:
+        save_repo.update(save_id, {"save_name": name})
+    return redirect(url_for("menu"))
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -117,7 +117,15 @@ def run_season(save_id: int, season_year: int = CURRENT_SEASON_YEAR):
     }
 
     state_json = dict(save.state_json or {})
-    season_stats: dict = {}
+
+    # 从DB读已有赛季统计（断点续玩时不会重置）
+    season_stats: dict = _load_season_stats(player.player_id, season_year)
+
+    # import 放循环外，避免每周重复import
+    from simulation.player_impact import (
+        compute_impact, expected_stats_from_override,
+        expected_stats_from_attrs, adjusted_win_prob,
+    )
 
     # 获取球队实力评级（用于计算获胜概率）
     my_team_id = save.current_team_id or player.current_team_id
@@ -140,10 +148,6 @@ def run_season(save_id: int, season_year: int = CURRENT_SEASON_YEAR):
         attrs["fatigue"] = max(0, attrs["fatigue"] - 8)
 
         # ── 4. 模拟本周比赛 ──────────────────────────────────────────────────
-        from simulation.player_impact import (
-            compute_impact, expected_stats_from_override,
-            expected_stats_from_attrs, adjusted_win_prob,
-        )
         stat_overrides = state_json.get("stat_overrides")
         n_games = games_this_week()
         games: list[GameBox] = []
@@ -289,9 +293,46 @@ def run_season(save_id: int, season_year: int = CURRENT_SEASON_YEAR):
             impact          = pre_impact,     # 本周影响力数据
         )
 
-    # ── 赛季结束：写入赛季汇总统计 + 评估荣誉 ───────────────────────────────
-    _persist_season_stats(player.player_id, my_team_id, season_year, season_stats)
+    # ── 赛季结束：只评估荣誉（统计已在循环内每周写入，无需重复写）────────────
     _evaluate_achievements(save_id, player.player_id, season_year, season_stats, event_repo)
+
+
+def _load_season_stats(player_id: int, season_year: int) -> dict:
+    """从DB读取已有赛季统计，用于断点续玩时恢复累计数据。"""
+    from database.connection import db
+    with db() as conn:
+        row = conn.execute(
+            """SELECT games_played, points_pg, rebounds_pg, assists_pg,
+                      steals_pg, blocks_pg, turnovers_pg, minutes_pg,
+                      fg_pct, fg3_pct, ft_pct
+               FROM player_season_stats
+               WHERE player_id=? AND season_year=? AND season_type='Regular'""",
+            (player_id, season_year)
+        ).fetchone()
+    if not row:
+        return {}
+    gp = row[0] or 0
+    return {
+        "games_played": gp,
+        "pts": round(row[1] or 0, 1),
+        "reb": round(row[2] or 0, 1),
+        "ast": round(row[3] or 0, 1),
+        "stl": round(row[4] or 0, 1),
+        "blk": round(row[5] or 0, 1),
+        "tov": round(row[6] or 0, 1),
+        "min": round(row[7] or 0, 1),
+        "fg_pct":  round(row[8] or 0, 3),
+        "fg3_pct": round(row[9] or 0, 3),
+        "ft_pct":  round(row[10] or 0, 3),
+        # 总计字段（用于加权均值计算）
+        "fg_made_total":  round((row[8] or 0) * gp * 13),
+        "fg_att_total":   gp * 13,
+        "fg3_made_total": round((row[9] or 0) * gp * 5),
+        "fg3_att_total":  gp * 5,
+        "ft_made_total":  round((row[10] or 0) * gp * 4),
+        "ft_att_total":   gp * 4,
+        "wins": 0,  # 胜场从game_log重算更准，这里给默认值
+    }
 
 
 def _persist_season_stats(

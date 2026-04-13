@@ -15,13 +15,27 @@ async function advanceWeek() {
     const resp = await fetch(`/game/${SAVE_ID}/advance`, { method: 'POST' });
     const data = await resp.json();
 
-    // 服务器报错时 data.error 有值
     if (!resp.ok || data.error) {
       showToast('服务器错误：' + (data.error || resp.status), true);
       return;
     }
 
     if (data.season_done && data.week >= 30) {
+      // 赛季结束 → 先显示最后一周内容，再跳转到赛季总结页
+      if (data.events !== undefined) {
+        appendWeekToFeed(data);
+        updatePlayerCard(data.attrs, data.week_summary);
+        updateSeasonStats(data.season_stats);
+        updateWeekNum(data.week);
+      }
+      showToast('赛季结束！正在生成总结...');
+      setTimeout(() => {
+        window.location.href = `/game/${SAVE_ID}/season-end`;
+      }, 1800);
+      return;
+    }
+
+    if (data.season_done) {
       // 最后一周也要显示内容
       if (data.week <= 30 && data.events !== undefined) {
         appendWeekToFeed(data);

@@ -287,12 +287,14 @@ def _generate_team_box(
     if total > 0 and abs(total - target) > 8:
         scale = target / total
         for p in rows:
-            p.points      = max(0, round(p.points * scale))
-            p.fg_made     = max(0, round(p.fg_made * scale))
-            p.fg_attempted= max(p.fg_made, round(p.fg_attempted * scale))
-            p.fg3_made    = max(0, min(p.fg3_attempted, round(p.fg3_made * scale)))
-            p.ft_made     = max(0, round(p.ft_made * scale))
-            p.ft_attempted= max(p.ft_made, round(p.ft_attempted * scale))
+            p.points       = max(0, round(p.points * scale))
+            # 先缩放 attempted，再确保 made <= attempted
+            p.fg_attempted = max(1, round(p.fg_attempted * scale))
+            p.fg_made      = max(0, min(p.fg_attempted, round(p.fg_made * scale)))
+            p.fg3_attempted= max(0, round(p.fg3_attempted * scale))
+            p.fg3_made     = max(0, min(p.fg3_attempted, round(p.fg3_made * scale)))
+            p.ft_attempted = max(0, round(p.ft_attempted * scale))
+            p.ft_made      = max(0, min(p.ft_attempted, round(p.ft_made * scale)))
 
     return TeamBoxScore(
         team_name    = team_name,
