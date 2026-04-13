@@ -30,9 +30,16 @@
         <span class="stat-pill">{{ {'pts':'得分','reb':'篮板','ast':'助攻','stl':'抢断','blk':'盖帽'}[k] }} {{ v }}</span>
         {% endfor %}
       </div>
-      <button class="btn btn-primary btn-sm sc-btn" style="width:100%;margin-top:12px">
-        开始验证这个假如 →
-      </button>
+      <!-- 直接链接到选球员页，携带 scenario_id -->
+      <a class="btn btn-primary btn-sm sc-btn"
+         href="/select?scenario_id={{ s.id }}"
+         style="width:100%;margin-top:12px;display:block;text-align:center">
+        选球员开始验证 →
+      </a>
+      <a href="/create-player?scenario_id={{ s.id }}"
+         style="display:block;text-align:center;font-size:11px;color:#64748b;margin-top:6px">
+        或新建虚构球员验证
+      </a>
     </div>
     {% endfor %}
   </div>
@@ -56,7 +63,7 @@
       {% endfor %}
     </div>
     <button class="btn btn-warning" style="width:100%;margin-top:16px" onclick="startCustom()">
-      开始验证我的假如 →
+      进入游戏再设置 →
     </button>
   </div>
 </div>

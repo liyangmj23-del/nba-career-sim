@@ -4,11 +4,22 @@
 <div class="page-wrap" style="max-width:600px">
   <div class="page-header">
     <h1>新建自定义球员</h1>
-    <a class="btn btn-ghost" href="/">← 返回</a>
+    <a class="btn btn-ghost" href="{{ '/scenarios' if request.args.get('scenario_id') else '/' }}">← 返回</a>
   </div>
   {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
 
+  {% if request.args.get('scenario_id') %}
+  {% set sid = request.args.get('scenario_id') %}
+  <div style="background:#0a1520;border:1px solid #1e6eb5;border-radius:10px;padding:14px 18px;margin-bottom:16px">
+    <div style="color:#4dc3ff;font-weight:700;margin-bottom:4px">🔗 关联假如场景</div>
+    <div style="color:#64748b;font-size:12px">创建球员后，该假如场景的数据设定将自动代入模拟</div>
+  </div>
+  {% endif %}
+
   <form method="post" class="form-card">
+    {% if request.args.get('scenario_id') %}
+    <input type="hidden" name="scenario_id" value="{{ request.args.get('scenario_id') }}">
+    {% endif %}
     <div class="form-group">
       <label>球员姓名</label>
       <input name="name" placeholder="例：张伟 / God Player" required>

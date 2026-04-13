@@ -4,11 +4,30 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1>选择球员</h1>
-    <a class="btn btn-ghost" href="/">← 返回</a>
+    <a class="btn btn-ghost" href="{% if current_scenario %}/scenarios{% else %}/{% endif %}">← 返回</a>
   </div>
 
-  <form class="search-bar" method="get">
+  <!-- 场景横幅（有场景时显示）-->
+  {% if current_scenario %}
+  <div class="scenario-banner">
+    <div class="sb-icon">{{ current_scenario.icon }}</div>
+    <div>
+      <div class="sb-name">当前假如场景：{{ current_scenario.name }}</div>
+      <div class="sb-stats">
+        {% for k, v in current_scenario.stats.items() %}
+        <span>{{ {'pts':'得分','reb':'篮板','ast':'助攻','stl':'抢断','blk':'盖帽'}[k] }}：{{ v }}</span>
+        {% endfor %}
+      </div>
+      <div class="sb-hint">选择任意球员后，该场景数据将自动代入模拟</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <form class="search-bar" method="get" action="/select">
     <input name="q" value="{{ q }}" placeholder="搜索球员姓名（如 LeBron、Curry）" autofocus>
+    {% if scenario_id %}
+    <input type="hidden" name="scenario_id" value="{{ scenario_id }}">
+    {% endif %}
     <button type="submit" class="btn btn-primary">搜索</button>
   </form>
 
@@ -21,10 +40,37 @@
       </div>
       <div class="pcard-name">{{ p.name }}</div>
       <form method="post" action="/new/{{ p.id }}">
-        <button type="submit" class="btn btn-small">选择此球员</button>
+        {% if scenario_id %}
+        <input type="hidden" name="scenario_id" value="{{ scenario_id }}">
+        {% endif %}
+        <button type="submit" class="btn btn-small">
+          {% if current_scenario %}验证假如 →{% else %}选择此球员{% endif %}
+        </button>
       </form>
     </div>
     {% endfor %}
   </div>
+
+  {% if current_scenario %}
+  <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #1e2040">
+    <a class="btn btn-primary" href="/create-player?scenario_id={{ scenario_id }}">
+      或者新建自定义球员来验证这个假如 →
+    </a>
+  </div>
+  {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.scenario-banner{
+  display:flex;align-items:flex-start;gap:16px;
+  background:#0a1520;border:1px solid #1e6eb5;border-radius:12px;
+  padding:16px 20px;margin-bottom:20px;
+}
+.sb-icon{font-size:32px;flex-shrink:0}
+.sb-name{font-size:16px;font-weight:700;color:#4dc3ff;margin-bottom:6px}
+.sb-stats{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;color:#ffc107;font-weight:600;margin-bottom:4px}
+.sb-hint{font-size:12px;color:#64748b}
+</style>
 {% endblock %}

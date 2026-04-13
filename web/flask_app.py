@@ -49,23 +49,35 @@ def menu():
 # ══════════════════════════════════════════════════════════════════════════════
 @app.route("/select")
 def player_select():
-    q = request.args.get("q", "").strip()
+    q           = request.args.get("q", "").strip()
+    scenario_id = request.args.get("scenario_id", "").strip()
+
     if q:
         players = player_repo.search(q)[:30]
     else:
         players = player_repo.get_all(active_only=True)[:40]
 
-    # 附加 overall rating
     result = []
     for p in players:
-        attr = player_repo.get_attributes(p.player_id, CURRENT_SEASON_YEAR)
+        attr    = player_repo.get_attributes(p.player_id, CURRENT_SEASON_YEAR)
         overall = attr.overall_rating if attr else "-"
         result.append({
             "id": p.player_id, "name": p.full_name,
             "pos": p.position or "-", "overall": overall,
             "team_id": p.current_team_id,
         })
-    return render_template("player_select.html", players=result, q=q)
+
+    # 找当前场景信息，用于在选球员页面展示横幅
+    current_scenario = None
+    if scenario_id:
+        current_scenario = next(
+            (s for s in PRESET_SCENARIOS if s["id"] == scenario_id), None
+        )
+
+    return render_template("player_select.html",
+        players=result, q=q,
+        scenario_id=scenario_id,
+        current_scenario=current_scenario)
 
 
 @app.route("/new/<int:player_id>", methods=["POST"])
@@ -89,12 +101,28 @@ def new_game(player_id):
             pass
 
     career_year = max(1, CURRENT_SEASON_YEAR - (player.from_year or CURRENT_SEASON_YEAR - 1))
-    save_name   = f"{player.full_name}  {CURRENT_SEASON_YEAR-1}-{str(CURRENT_SEASON_YEAR)[2:]}"
+
+    # ── 读取并应用场景 stat_overrides ──────────────────────────────────────────
+    scenario_id = request.form.get("scenario_id", "").strip()
+    state_json  = {}
+    if scenario_id:
+        scenario = next((s for s in PRESET_SCENARIOS if s["id"] == scenario_id), None)
+        if scenario:
+            state_json["stat_overrides"] = {k: float(v) for k, v in scenario["stats"].items()}
+
+    save_name = f"{player.full_name}  {CURRENT_SEASON_YEAR-1}-{str(CURRENT_SEASON_YEAR)[2:]}"
+    if scenario_id and state_json.get("stat_overrides"):
+        # 存档名带场景标识
+        scen = next((s for s in PRESET_SCENARIOS if s["id"] == scenario_id), None)
+        if scen:
+            save_name = f"{player.full_name} · {scen['name']}"
+
     save_id = save_repo.create({
         "save_name": save_name, "player_id": player.player_id,
         "current_team_id": player.current_team_id,
         "current_season": CURRENT_SEASON_YEAR, "current_week": 1,
-        "current_age": age, "career_year": career_year, "state_json": {},
+        "current_age": age, "career_year": career_year,
+        "state_json": state_json,
     })
     return redirect(url_for("game", save_id=save_id))
 
@@ -143,11 +171,25 @@ def create_player():
         attrs_data["overall_rating"] = ov
     player_repo.upsert_attributes(attrs_data)
 
+    # 读取场景
+    scenario_id = request.form.get("scenario_id", "").strip()
+    state_json  = {}
+    if scenario_id:
+        scenario = next((s for s in PRESET_SCENARIOS if s["id"] == scenario_id), None)
+        if scenario:
+            state_json["stat_overrides"] = {k: float(v) for k, v in scenario["stats"].items()}
+
+    scen_name = ""
+    if scenario_id:
+        scen = next((s for s in PRESET_SCENARIOS if s["id"] == scenario_id), None)
+        if scen:
+            scen_name = f" · {scen['name']}"
+
     save_id = save_repo.create({
-        "save_name": f"[自定义] {name}",
+        "save_name": f"[自定义] {name}{scen_name}",
         "player_id": cid, "current_team_id": team_id,
         "current_season": CURRENT_SEASON_YEAR, "current_week": 1,
-        "current_age": age, "career_year": career_year, "state_json": {},
+        "current_age": age, "career_year": career_year, "state_json": state_json,
     })
     return redirect(url_for("game", save_id=save_id))
 
