@@ -746,6 +746,23 @@ def rename_save(save_id):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 设置页
+# ══════════════════════════════════════════════════════════════════════════════
+_app_settings = {"difficulty": "normal", "narrative_style": "immersive", "event_freq": "normal"}
+
+@app.route("/settings")
+def settings():
+    return render_template("settings.html", settings=_app_settings)
+
+@app.route("/settings/save", methods=["POST"])
+def settings_save():
+    _app_settings["difficulty"]       = request.form.get("difficulty", "normal")
+    _app_settings["narrative_style"]  = request.form.get("narrative_style", "immersive")
+    _app_settings["event_freq"]       = request.form.get("event_freq", "normal")
+    return redirect(url_for("menu"))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # 版本检查
 # ══════════════════════════════════════════════════════════════════════════════
 @app.route("/api/update-info")

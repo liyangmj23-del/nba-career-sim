@@ -23,6 +23,8 @@ input,select,textarea{font-family:inherit;font-size:14px}
 .nav-sep{color:var(--muted)}
 .nav-season{color:var(--muted)}
 .nav-right{display:flex;gap:8px;flex-shrink:0}
+.nav-settings-btn{color:#475569;font-size:16px;text-decoration:none;padding:4px 8px;border-radius:6px;transition:color .2s;flex-shrink:0;margin-left:auto}
+.nav-settings-btn:hover{color:#94a3b8}
 
 /* ── 按钮 ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;
@@ -135,10 +137,12 @@ input,select,textarea{font-family:inherit;font-size:14px}
 
 /* ── 中：事件流 ── */
 .event-section{overflow:hidden;display:flex;flex-direction:column;background:var(--bg);min-height:0}
-.event-feed{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:0;
+.event-feed{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column-reverse;gap:0;
   min-height:0;scroll-behavior:smooth}
+/* column-reverse: 新内容prepend到顶部，最新永远在视口顶端，无需滚动 */
 .feed-welcome{color:var(--muted);text-align:center;padding:40px 20px;font-size:15px}
 .feed-welcome p:first-child{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
+.feed-week-block{margin-bottom:4px}
 .feed-divider{text-align:center;color:var(--muted);font-size:12px;padding:12px 0;
   border-bottom:1px solid var(--border);margin-bottom:8px}
 .feed-week-stats{background:var(--bg2);border-radius:8px;padding:10px 14px;margin-bottom:8px;
@@ -276,9 +280,62 @@ input,select,textarea{font-family:inherit;font-size:14px}
 .box-modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;
   max-width:95vw;max-height:90vh;overflow:auto;padding:20px;width:100%}
 
-@media(max-width:900px){
-  .game-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
-  .player-panel,.action-panel{max-height:40vh}
-  .charts-row{grid-template-columns:1fr}
-  .box-grid{grid-template-columns:1fr}
+/* ══ 移动端适配 ══════════════════════════════════════════════════════════ */
+@media(max-width:900px) {
+  /* 游戏布局：改为纵向堆叠 */
+  .game-layout{
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    height: auto;
+    min-height: calc(100vh - 50px);
+  }
+  .player-panel{
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .action-panel{
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .event-section{ min-height: 50vh; }
+  .btn-advance{ width: auto; flex: 1; min-width: 120px; }
+  .stats-mini{ display: none; }  /* 移动端隐藏mini统计，数据页查看 */
+  .week-progress{ flex: 1; }
+
+  /* 数据页 */
+  .charts-row{ grid-template-columns: 1fr; }
+  .box-grid{ grid-template-columns: 1fr; }
+
+  /* 场景库 */
+  .scenario-grid{ grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .custom-inputs{ grid-template-columns: repeat(2, 1fr); }
+
+  /* 主菜单 */
+  .menu-scenarios-preview{ grid-template-columns: repeat(3, 1fr); }
+
+  /* 赛季总结 */
+  .stats-row{ grid-template-columns: repeat(4, 1fr); }
+  .whatif-compare{ flex-direction: column; }
+  .wc-arrow{ transform: rotate(90deg); }
+
+  /* 历史地位 */
+  .ce-stats{ grid-template-columns: repeat(3, 1fr); }
+  .awards-grid-ce{ grid-template-columns: repeat(2, 1fr); }
+
+  /* 导航 */
+  .nav-center{ font-size: 12px; }
+  .navbar{ padding: 0 12px; gap: 8px; }
+}
+
+@media(max-width:480px) {
+  .menu-card{ width: 95vw; padding: 20px 16px; }
+  .scenario-grid{ grid-template-columns: 1fr 1fr; }
+  .stats-row{ grid-template-columns: repeat(4, 1fr); }
+  .ce-stats{ grid-template-columns: repeat(2, 1fr); }
+  .nav-center{ display: none; }  /* 小屏隐藏中央导航文字 */
 }

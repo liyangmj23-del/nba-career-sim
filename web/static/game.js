@@ -93,14 +93,21 @@ function appendWeekToFeed(data) {
   const welcome = feed.querySelector('.feed-welcome');
   if (welcome) welcome.remove();
 
+  // column-reverse 模式下，prepend = 视觉上显示在顶部
+  const insertBefore = (el) => feed.insertBefore(el, feed.firstChild);
+
   const yr = data.season_year;
   const seasonLabel = `${yr-1}-${String(yr).slice(2)}`;
+
+  // 把本周所有内容打包进一个容器，再整体 prepend（保持本周内部顺序）
+  const weekContainer = document.createElement('div');
+  weekContainer.className = 'feed-week-block';
 
   // 周分隔线
   const divider = document.createElement('div');
   divider.className = 'feed-divider';
   divider.textContent = `── 第 ${data.week} 周 · ${seasonLabel} 赛季 ──`;
-  feed.appendChild(divider);
+  weekContainer.appendChild(divider);
 
   // 本周数据
   const ws = data.week_summary;
@@ -129,7 +136,7 @@ function appendWeekToFeed(data) {
       <span style="color:#64748b;font-size:12px">
         FG ${fgm}/${fga} (${fgPct})　3P ${fg3m}/${fg3a} (${fg3Pct})　FT ${ftm}/${fta} (${ftPct})
       </span>`;
-    feed.appendChild(statsDiv);
+    weekContainer.appendChild(statsDiv);
   }
 
   // 影响力报告
@@ -153,16 +160,16 @@ function appendWeekToFeed(data) {
     if (oe.team_pts_boost >= 0.5)   oeParts.push(`队友得分提升 +${oe.team_pts_boost.toFixed(1)}`);
     if (oeParts.length > 0) html += `<br><span style="color:#64748b">${oeParts.join('　')}</span>`;
     impDiv.innerHTML = html;
-    feed.appendChild(impDiv);
+    weekContainer.appendChild(impDiv);
   }
 
   // 事件
   if (!data.events || data.events.length === 0) {
     const noEvent = document.createElement('div');
     noEvent.className = 'feed-item minor';
-    noEvent.innerHTML = `<div class="feed-meta">${CAT_LABELS['game_performance']||''}</div>
+    noEvent.innerHTML = `<div class="feed-meta">比赛</div>
       <div class="feed-text" style="color:#475569">本周平静，无特殊事件。</div>`;
-    feed.appendChild(noEvent);
+    weekContainer.appendChild(noEvent);
   } else {
     data.events.forEach(ev => {
       const el = document.createElement('div');
@@ -183,21 +190,12 @@ function appendWeekToFeed(data) {
         <div class="feed-title">${ev.title}</div>
         <div class="feed-text">${(ev.narrative||'').trim().slice(0,400)}</div>
         ${deltaHtml}`;
-      feed.appendChild(el);
-
-      // 选择事件标记（由 handleChoices 处理）
-      if (ev.choice_prompt) {
-        el.dataset.hasChoice = '1';
-      }
+      weekContainer.appendChild(el);
     });
   }
 
-  // 强制滚到底（等 DOM 渲染完再滚）
-  requestAnimationFrame(() => {
-    feed.scrollTop = feed.scrollHeight;
-    // 第二帧再滚一次，确保内容已经撑开
-    requestAnimationFrame(() => { feed.scrollTop = feed.scrollHeight; });
-  });
+  // 整体 prepend 到 feed 最顶端（column-reverse 下视觉正确）
+  feed.insertBefore(weekContainer, feed.firstChild);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

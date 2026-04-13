@@ -54,6 +54,8 @@
             {% if s.current_week <= 30 %}· 第 {{ s.current_week }} 周{% else %}· 赛季结束{% endif %}
           </div>
         </a>
+        <button onclick="renamePrompt({{ s.save_id }}, '{{ s.save_name }}')"
+          style="background:none;border:none;color:#475569;cursor:pointer;font-size:14px;padding:8px">✏️</button>
         <form method="post" action="/saves/{{ s.save_id }}/delete"
               onsubmit="return confirm('确认删除「{{ s.save_name }}」？')" style="flex-shrink:0">
           <button type="submit" style="background:none;border:none;color:#475569;cursor:pointer;font-size:16px;padding:8px">🗑</button>
@@ -67,6 +69,21 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+function renamePrompt(saveId, currentName) {
+  const newName = prompt('重命名存档：', currentName);
+  if (newName && newName.trim() && newName !== currentName) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/saves/${saveId}/rename`;
+    const input = document.createElement('input');
+    input.name = 'name'; input.value = newName.trim(); input.type = 'hidden';
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+</script>
 <style>
 .menu-whatif-section{margin-bottom:16px;background:#0a1520;border:1px solid #1e3060;border-radius:10px;padding:14px}
 .menu-whatif-label{font-size:11px;color:#4dc3ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600}

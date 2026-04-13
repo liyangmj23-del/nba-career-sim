@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}设置 · NBA 假如模拟器{% endblock %}
+{% block nav_extra %}
+<div class="nav-center" style="color:#94a3b8">设置</div>
+<div class="nav-right"><a class="btn btn-ghost btn-sm" href="/">← 返回</a></div>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap" style="max-width:600px">
+  <h1 style="font-size:24px;font-weight:800;margin-bottom:24px">设置</h1>
+
+  <form method="post" action="/settings/save">
+    <!-- 游戏难度 -->
+    <div class="settings-section">
+      <div class="ss-title">游戏难度</div>
+      <div class="ss-options">
+        <label class="ss-option">
+          <input type="radio" name="difficulty" value="normal" {{ 'checked' if settings.difficulty=='normal' else '' }}>
+          <div class="sso-content">
+            <div class="sso-name">正常</div>
+            <div class="sso-desc">标准数据波动，正常事件频率，假如数据±15%浮动</div>
+          </div>
+        </label>
+        <label class="ss-option">
+          <input type="radio" name="difficulty" value="realistic" {{ 'checked' if settings.difficulty=='realistic' else '' }}>
+          <div class="sso-content">
+            <div class="sso-name">模拟真实</div>
+            <div class="sso-desc">假如数据年龄衰退更快，伤病更频繁，更接近真实NBA限制</div>
+          </div>
+        </label>
+        <label class="ss-option">
+          <input type="radio" name="difficulty" value="god" {{ 'checked' if settings.difficulty=='god' else '' }}>
+          <div class="sso-content">
+            <div class="sso-name">神话模式</div>
+            <div class="sso-desc">假如数据不因年龄衰退，无重伤，纯粹验证数据影响</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- 叙事风格 -->
+    <div class="settings-section">
+      <div class="ss-title">叙事风格</div>
+      <div class="ss-options">
+        <label class="ss-option">
+          <input type="radio" name="narrative_style" value="immersive" {{ 'checked' if settings.narrative_style=='immersive' else '' }}>
+          <div class="sso-content">
+            <div class="sso-name">沉浸叙事</div>
+            <div class="sso-desc">完整段落叙事，有细节有情感，适合慢慢品味</div>
+          </div>
+        </label>
+        <label class="ss-option">
+          <input type="radio" name="narrative_style" value="brief" {{ 'checked' if settings.narrative_style=='brief' else '' }}>
+          <div class="sso-content">
+            <div class="sso-name">简洁快速</div>
+            <div class="sso-desc">只显示事件标题和属性变化，快速推进</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- 事件频率 -->
+    <div class="settings-section">
+      <div class="ss-title">事件频率</div>
+      <div class="ss-options">
+        <label class="ss-option">
+          <input type="radio" name="event_freq" value="normal" {{ 'checked' if settings.event_freq=='normal' else '' }}>
+          <div class="sso-content"><div class="sso-name">正常</div><div class="sso-desc">每周2-3个事件，含1个选择事件</div></div>
+        </label>
+        <label class="ss-option">
+          <input type="radio" name="event_freq" value="frequent" {{ 'checked' if settings.event_freq=='frequent' else '' }}>
+          <div class="sso-content"><div class="sso-name">频繁</div><div class="sso-desc">更多事件，更多选择机会</div></div>
+        </label>
+        <label class="ss-option">
+          <input type="radio" name="event_freq" value="rare" {{ 'checked' if settings.event_freq=='rare' else '' }}>
+          <div class="sso-content"><div class="sso-name">稀少</div><div class="sso-desc">减少事件打断，专注数据模拟</div></div>
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px">
+      <button type="submit" class="btn btn-primary">保存设置</button>
+      <a href="/" class="btn btn-ghost">取消</a>
+    </div>
+  </form>
+
+  <!-- 关于 -->
+  <div class="settings-section" style="margin-top:32px">
+    <div class="ss-title">关于</div>
+    <div style="color:#64748b;font-size:13px;line-height:1.8">
+      <div>NBA 假如模拟器 v1.0.0</div>
+      <div>开源项目：<a href="https://github.com/liyangmj23-del/nba-career-sim" target="_blank" style="color:#4dc3ff">github.com/liyangmj23-del/nba-career-sim</a></div>
+      <div style="margin-top:8px;color:#475569">数据来源：nba_api（非官方接口）· 仅供娱乐</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.settings-section{background:#0d0d1a;border:1px solid #1e2040;border-radius:12px;padding:20px;margin-bottom:16px}
+.ss-title{font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:14px}
+.ss-options{display:flex;flex-direction:column;gap:8px}
+.ss-option{display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid #1e2040;border-radius:8px;cursor:pointer;transition:all .2s}
+.ss-option:hover{border-color:#4dc3ff;background:#0d0d20}
+.ss-option input[type=radio]{margin-top:3px;accent-color:#4dc3ff;flex-shrink:0}
+.ss-option input[type=radio]:checked + .sso-content .sso-name{color:#4dc3ff}
+.sso-name{font-weight:600;font-size:14px;margin-bottom:3px}
+.sso-desc{font-size:12px;color:#64748b}
+</style>
+{% endblock %}
