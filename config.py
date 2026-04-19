@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT_DIR        = Path(__file__).parent
 DATA_DIR        = ROOT_DIR / "data"
 DB_PATH         = DATA_DIR / "nba_sim.db"
+SEED_DB_PATH    = DATA_DIR / "seed_nba_sim.db"
 SEED_CACHE_DIR  = ROOT_DIR / "seeding" / "seed_cache"
 
 DATA_DIR.mkdir(exist_ok=True)

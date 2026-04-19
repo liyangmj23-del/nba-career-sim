@@ -2,6 +2,7 @@
 数据库 Schema：建表 DDL + 初始化入口
 运行方式：python -m database.schema
 """
+import shutil
 from database.connection import db
 
 DDL = """
@@ -262,6 +263,12 @@ _MIGRATIONS = [
 
 
 def init_database():
+    from config import DB_PATH, SEED_DB_PATH
+    # 运行时库不存在(全新clone/全新HF Spaces容器) → 先从随代码发布的种子库(30队+530真实球员，
+    # 不含任何存档/游玩记录)拷贝一份出来，再在这份拷贝上跑DDL/迁移，跳过nba_api的2分钟种子导入。
+    if not DB_PATH.exists() and SEED_DB_PATH.exists():
+        shutil.copy(SEED_DB_PATH, DB_PATH)
+        print(f"[OK] 已从种子库初始化运行时数据库：{DB_PATH}")
     with db() as conn:
         conn.executescript(DDL)
         # 迁移：安全地补列（忽略已存在的列）
@@ -270,7 +277,7 @@ def init_database():
                 conn.execute(sql)
             except Exception:
                 pass
-    print(f"[OK] 数据库初始化完成：{__import__('config').DB_PATH}")
+    print(f"[OK] 数据库初始化完成：{DB_PATH}")
 
 
 if __name__ == "__main__":

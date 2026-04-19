@@ -9,9 +9,13 @@ dist/
 build/
 .eggs/
 
-# ── 数据库（本地数据，不提交）─────────────────────────────
-data/nba_sim.db
+# 数据库：本地HTML报告不提交
 data/*.html
+# data/nba_sim.db 是本机运行时数据库(存档/比赛记录/事件日志)，不再提交，避免个人游玩记录进仓库。
+# 种子数据(30队+530真实球员)单独存在 data/seed_nba_sim.db，随代码一起发布，
+# 应用首次启动时自动从种子库拷贝出 nba_sim.db，见 database/schema.py。
+data/nba_sim.db
+
 
 # ── 种子缓存（体积大，用户自己跑生成）────────────────────
 seeding/seed_cache/
