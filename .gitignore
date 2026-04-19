@@ -9,9 +9,9 @@ dist/
 build/
 .eggs/
 
-# ── 数据库（本地数据，不提交）─────────────────────────────
-data/nba_sim.db
+# 数据库：本地HTML报告不提交，但数据库随代码一起发布（供HF Spaces使用）
 data/*.html
+# data/nba_sim.db  # 已开放，供 Hugging Face Spaces 直接使用
 
 # ── 种子缓存（体积大，用户自己跑生成）────────────────────
 seeding/seed_cache/

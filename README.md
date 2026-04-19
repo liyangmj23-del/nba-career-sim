@@ -1,3 +1,14 @@
+---
+title: NBA 假如模拟器
+emoji: 🏀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+license: mit
+short_description: 你说数据，我告诉你结局。NBA生涯假如模拟器
+---
+
 # 🏀 NBA 假如模拟器
 
 > **你说数据，我告诉你结局。**
