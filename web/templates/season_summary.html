@@ -4,7 +4,7 @@
 <div class="nav-center">
   <span class="nav-player">{{ summary.player.full_name }}</span>
   <span class="nav-sep">·</span>
-  <span style="color:#64748b">第 {{ summary.career_year }} 个赛季 · {{ summary.age }} 岁</span>
+  <span style="color:#9C948A">第 {{ summary.career_year }} 个赛季 · {{ summary.age }} 岁</span>
 </div>
 {% endblock %}
 
@@ -27,7 +27,7 @@
         <div class="wc-label">你的假如设定</div>
         {% for k, v in summary.overrides.items() %}
         <div class="wc-val">{{ {'pts':'得分','reb':'篮板','ast':'助攻','stl':'抢断','blk':'盖帽'}[k] }}
-          <span style="color:#ffc107">{{ v }}</span>
+          <span style="color:#8B6F47">{{ v }}</span>
         </div>
         {% endfor %}
       </div>
@@ -35,11 +35,11 @@
       <div class="wc-col">
         <div class="wc-label">本赛季实际均值</div>
         {% if summary.season_stats %}
-        <div class="wc-val">得分 <span style="color:#4dc3ff">{{ summary.season_stats.pts }}</span></div>
-        <div class="wc-val">篮板 <span style="color:#22c55e">{{ summary.season_stats.reb }}</span></div>
-        <div class="wc-val">助攻 <span style="color:#eab308">{{ summary.season_stats.ast }}</span></div>
-        <div class="wc-val">抢断 <span style="color:#a855f7">{{ summary.season_stats.stl }}</span></div>
-        <div class="wc-val">盖帽 <span style="color:#f97316">{{ summary.season_stats.blk }}</span></div>
+        <div class="wc-val">得分 <span style="color:#4A7A94">{{ summary.season_stats.pts }}</span></div>
+        <div class="wc-val">篮板 <span style="color:#5F8A6B">{{ summary.season_stats.reb }}</span></div>
+        <div class="wc-val">助攻 <span style="color:#A6812E">{{ summary.season_stats.ast }}</span></div>
+        <div class="wc-val">抢断 <span style="color:#7A5C96">{{ summary.season_stats.stl }}</span></div>
+        <div class="wc-val">盖帽 <span style="color:#B8663A">{{ summary.season_stats.blk }}</span></div>
         {% endif %}
       </div>
     </div>
@@ -82,7 +82,7 @@
       <div class="stat-box"><span class="sb-val">{{ summary.season_stats.fg3 }}%</span><span class="sb-lbl">3P%</span></div>
       <div class="stat-box"><span class="sb-val">{{ summary.season_stats.ft }}%</span><span class="sb-lbl">FT%</span></div>
     </div>
-    <div style="margin-top:12px;color:#64748b;font-size:13px">
+    <div style="margin-top:12px;color:#9C948A;font-size:13px">
       出场 {{ summary.season_stats.gp }} 场
     </div>
   </div>
@@ -93,20 +93,20 @@
     <div class="card-title">🏀 球队影响</div>
     <div class="team-impact-row">
       <div>
-        <span style="font-size:28px;font-weight:900;color:#4dc3ff">{{ summary.proj_team_wins }}</span>
-        <span style="color:#64748b;font-size:13px"> 胜</span>
+        <span style="font-size:28px;font-weight:900;color:#4A7A94">{{ summary.proj_team_wins }}</span>
+        <span style="color:#9C948A;font-size:13px"> 胜</span>
       </div>
-      <div style="color:#64748b;font-size:13px">
+      <div style="color:#9C948A;font-size:13px">
         你的影响力为球队带来了
-        <span style="color:{% if summary.player_win_bonus > 0 %}#22c55e{% else %}#ef4444{% endif %};font-weight:700">
+        <span style="color:{% if summary.player_win_bonus > 0 %}#5F8A6B{% else %}#8B4A56{% endif %};font-weight:700">
           {% if summary.player_win_bonus > 0 %}+{% endif %}{{ summary.player_win_bonus }}
         </span> 场额外胜利
       </div>
     </div>
     {% if summary.playoff_qualified %}
-    <div style="color:#22c55e;font-weight:700;margin-top:8px">✅ 球队进入季后赛</div>
+    <div style="color:#5F8A6B;font-weight:700;margin-top:8px">✅ 球队进入季后赛</div>
     {% else %}
-    <div style="color:#ef4444;margin-top:8px">❌ 未能进入季后赛（投影 {{ summary.proj_team_wins }} 胜不足）</div>
+    <div style="color:#8B4A56;margin-top:8px">❌ 未能进入季后赛（投影 {{ summary.proj_team_wins }} 胜不足）</div>
     {% endif %}
   </div>
 
@@ -130,7 +130,7 @@
     </div>
   </div>
   {% else %}
-  <div class="sum-card" style="color:#475569;text-align:center">本赛季未获得任何个人荣誉</div>
+  <div class="sum-card" style="color:#6B6259;text-align:center">本赛季未获得任何个人荣誉</div>
   {% endif %}
 
   <!-- 历史地位 -->
@@ -138,10 +138,10 @@
     <div class="card-title">📈 历史地位（当前）</div>
     <div style="display:flex;align-items:center;gap:20px">
       <div>
-        <div style="font-size:22px;font-weight:800;color:#ffc107">{{ summary.history.tier }}</div>
-        <div style="color:#64748b;font-size:12px">HOF积分：{{ summary.history.hof_score|round|int }}</div>
+        <div style="font-size:22px;font-weight:800;color:#8B6F47">{{ summary.history.tier }}</div>
+        <div style="color:#9C948A;font-size:12px">HOF积分：{{ summary.history.hof_score|round|int }}</div>
       </div>
-      <div style="color:#64748b;font-size:13px">
+      <div style="color:#9C948A;font-size:13px">
         生涯 {{ summary.career.seasons }} 赛季 / {{ summary.career.games }} 场
       </div>
     </div>
@@ -186,65 +186,148 @@
     {% endif %}
   {% endif %}
 </div>
+
+<!-- 分享卡片(紧凑设计,专供 html2canvas 截图,不在页面正常展示区域内可见) -->
+<div id="pastel-share-card" class="psc-card">
+  <div class="psc-swatchbar">
+    <span style="background:#F5E6A3"></span>
+    <span style="background:#C9DDE4"></span>
+    <span style="background:#F3D9DC"></span>
+    <span style="background:#D9CFE0"></span>
+  </div>
+  <div class="psc-body">
+    <div class="psc-emoji">🏀</div>
+    <div class="psc-title">{% if summary.overrides %}我验证了一个假如...{% else %}我的赛季报告{% endif %}</div>
+
+    {% if summary.overrides %}
+    <div class="psc-chips">
+      {% for k, v in summary.overrides.items() %}
+      <span class="psc-chip psc-chip-{{ loop.index0 % 5 }}">{{ {'pts':'得分','reb':'篮板','ast':'助攻','stl':'抢断','blk':'盖帽'}[k] }} {{ v|int }}</span>
+      {% endfor %}
+    </div>
+    {% elif summary.season_stats %}
+    <div class="psc-chips">
+      <span class="psc-chip psc-chip-0">得分 {{ summary.season_stats.pts }}</span>
+      <span class="psc-chip psc-chip-1">篮板 {{ summary.season_stats.reb }}</span>
+      <span class="psc-chip psc-chip-2">助攻 {{ summary.season_stats.ast }}</span>
+      <span class="psc-chip psc-chip-3">抢断 {{ summary.season_stats.stl }}</span>
+      <span class="psc-chip psc-chip-4">盖帽 {{ summary.season_stats.blk }}</span>
+    </div>
+    {% endif %}
+
+    <div class="psc-divider"></div>
+    <div class="psc-label">结果</div>
+    <div class="psc-results">
+      {% if summary.awards %}
+        {% for a in summary.awards[:5] %}
+        <span class="psc-result">✅ {{ a.description }}</span>
+        {% endfor %}
+      {% else %}
+        <span class="psc-result-muted">本赛季暂无个人荣誉</span>
+      {% endif %}
+    </div>
+
+    {% if summary.records_broken %}
+    <div class="psc-record">💥 打破 {{ summary.records_broken[0].stat }} 历史记录 × {{ summary.records_broken[0].ratio }}倍</div>
+    {% endif %}
+
+    <div class="psc-divider"></div>
+    <div class="psc-status">
+      <span class="psc-status-tier">{{ summary.history.tier }}</span>
+      <span class="psc-status-hof">HOF积分 {{ summary.history.hof_score|round|int }}</span>
+    </div>
+  </div>
+  <div class="psc-footer">
+    <span class="psc-footer-name">{{ summary.player.full_name }}</span>
+    <span class="psc-footer-brand">NBA 假如模拟器</span>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <style>
 .summary-wrap{max-width:800px;margin:0 auto;padding:24px}
 .sum-header{text-align:center;padding:32px 0 24px}
-.sum-year{font-size:14px;color:#64748b;letter-spacing:2px;text-transform:uppercase}
-.sum-player{font-size:36px;font-weight:900;color:#4dc3ff;margin:8px 0}
-.sum-meta{color:#64748b;font-size:13px}
-.sum-card{background:#0d0d1a;border:1px solid #1e2040;border-radius:12px;padding:20px;margin-bottom:16px}
-.card-title{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1e2040}
-.whatif-card{border-color:#ffc107}
+.sum-year{font-size:14px;color:#9C948A;letter-spacing:2px;text-transform:uppercase}
+.sum-player{font-size:36px;font-weight:900;color:#4A7A94;margin:8px 0}
+.sum-meta{color:#9C948A;font-size:13px}
+.sum-card{background:#FFFFFF;border:1px solid #E4DCD0;border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:12px;color:#9C948A;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E4DCD0}
+.whatif-card{border-color:#8B6F47}
 .whatif-compare{display:flex;align-items:center;gap:24px}
 .wc-col{flex:1}
-.wc-label{font-size:11px;color:#64748b;margin-bottom:8px;text-transform:uppercase}
+.wc-label{font-size:11px;color:#9C948A;margin-bottom:8px;text-transform:uppercase}
 .wc-val{font-size:14px;margin-bottom:4px}
-.wc-arrow{font-size:24px;color:#ffc107;flex-shrink:0}
+.wc-arrow{font-size:24px;color:#8B6F47;flex-shrink:0}
 .stats-row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;text-align:center}
-.stat-box{background:#12122a;border-radius:8px;padding:10px 4px}
+.stat-box{background:#F0EAE0;border-radius:8px;padding:10px 4px}
 .sb-val{display:block;font-size:20px;font-weight:800}
-.sb-lbl{display:block;font-size:10px;color:#64748b;margin-top:3px}
-.sb-val.cyan{color:#4dc3ff}
-.sb-val.green{color:#22c55e}
-.sb-val.yellow{color:#eab308}
-.sb-val.purple{color:#a855f7}
-.sb-val.orange{color:#f97316}
-.record-card{border-color:#ef4444}
-.record-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1e2040;font-size:13px}
-.record-stat{font-weight:700;color:#ef4444;width:40px}
-.record-val{font-size:18px;font-weight:900;color:#ffc107}
-.record-arrow{color:#64748b}
-.record-old{color:#64748b;font-size:12px}
+.sb-lbl{display:block;font-size:10px;color:#9C948A;margin-top:3px}
+.sb-val.cyan{color:#4A7A94}
+.sb-val.green{color:#5F8A6B}
+.sb-val.yellow{color:#A6812E}
+.sb-val.purple{color:#7A5C96}
+.sb-val.orange{color:#B8663A}
+.record-card{border-color:#8B4A56}
+.record-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #E4DCD0;font-size:13px}
+.record-stat{font-weight:700;color:#8B4A56;width:40px}
+.record-val{font-size:18px;font-weight:900;color:#8B6F47}
+.record-arrow{color:#9C948A}
+.record-old{color:#9C948A;font-size:12px}
 .record-tier{margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center}
-.unprecedented{background:rgba(168,85,247,.1);border:1px solid #a855f7;color:#c084fc}
-.legendary{background:rgba(168,85,247,.08);border:1px solid #7c3aed;color:#a78bfa}
-.historic{background:rgba(239,68,68,.08);border:1px solid #ef4444;color:#f87171}
+.unprecedented{background:rgba(168,85,247,.1);border:1px solid #7A5C96;color:#6B4F86}
+.legendary{background:rgba(168,85,247,.08);border:1px solid #6B4F8A;color:#8268A8}
+.historic{background:rgba(239,68,68,.08);border:1px solid #8B4A56;color:#B8515D}
 .team-impact-row{display:flex;align-items:center;gap:24px}
 .awards-list{display:flex;flex-direction:column;gap:8px}
-.award-item{padding:8px 12px;background:#12122a;border-radius:8px;font-size:13px;font-weight:600}
-.key-event-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #0a0a12;font-size:13px}
-.ke-week{color:#4080c0;font-size:11px;width:48px;flex-shrink:0}
-.ke-title{color:#e2e8f0}
+.award-item{padding:8px 12px;background:#F0EAE0;border-radius:8px;font-size:13px;font-weight:600}
+.key-event-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #F5F0E6;font-size:13px}
+.ke-week{color:#4A7A94;font-size:11px;width:48px;flex-shrink:0}
+.ke-title{color:#4A4340}
 .sum-actions{max-width:800px;margin:0 auto;padding:0 24px 40px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.btn-share{background:#1a1000;border:1px solid #ffc107;color:#ffc107;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
-.btn-advance{background:linear-gradient(135deg,#0a2810,#0d3818);border:1px solid #1e6030;color:#4ade80;font-weight:800;padding:12px 24px}
-.retirement-notice{max-width:800px;margin:0 auto 16px;padding:14px 20px;border-radius:8px;background:#1a0800;border:1px solid #f97316;color:#f97316;font-size:13px}
-.retirement-notice.force{border-color:#ef4444;color:#ef4444;background:#1a0000}
-.retirement-notice p{margin:4px 0 0;color:#94a3b8}
+.btn-share{background:#F5E6A3;border:1px solid #8B6F47;color:#8B6F47;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-advance{background:linear-gradient(135deg,#CBDAC0,#BDD0AE);border:1px solid #9FB894;color:#4A7050;font-weight:800;padding:12px 24px}
+.retirement-notice{max-width:800px;margin:0 auto 16px;padding:14px 20px;border-radius:8px;background:#F0D0BC;border:1px solid #B8663A;color:#B8663A;font-size:13px}
+.retirement-notice.force{border-color:#8B4A56;color:#8B4A56;background:#EFC9CE}
+.retirement-notice p{margin:4px 0 0;color:#7A7168}
 @media(max-width:600px){.stats-row{grid-template-columns:repeat(4,1fr)}.whatif-compare{flex-direction:column}.wc-arrow{transform:rotate(90deg)}}
+
+/* ── 分享卡片：2026流行色 Powdered Pastels，柔粉彩风格，专供导出分享图 ── */
+#pastel-share-card{position:absolute;left:-9999px;top:0;width:420px;font-family:'Segoe UI',system-ui,sans-serif}
+.psc-card{background:#F7F3EC;border-radius:20px;overflow:hidden}
+.psc-swatchbar{display:flex;height:14px}
+.psc-swatchbar span{flex:1}
+.psc-body{padding:32px 28px 24px;text-align:center}
+.psc-emoji{font-size:40px;margin-bottom:6px}
+.psc-title{font-size:20px;font-weight:800;color:#4A4340;margin-bottom:20px}
+.psc-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:4px}
+.psc-chip{padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;color:#4A4340}
+.psc-chip-0{background:#F5E6A3}
+.psc-chip-1{background:#C9DDE4}
+.psc-chip-2{background:#F3D9DC}
+.psc-chip-3{background:#D9CFE0}
+.psc-chip-4{background:#CBDAC0}
+.psc-divider{height:1px;background:#E4DCD0;margin:18px 0}
+.psc-label{font-size:11px;color:#9C948A;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.psc-results{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#4A4340;font-weight:600}
+.psc-result-muted{color:#B0A89C;font-size:13px}
+.psc-record{margin-top:14px;padding:10px;background:#F3D9DC;border-radius:10px;font-size:13px;font-weight:700;color:#8B4A56}
+.psc-status{display:flex;justify-content:center;gap:16px;align-items:baseline}
+.psc-status-tier{font-size:20px;font-weight:800;color:#8B6F47}
+.psc-status-hof{font-size:12px;color:#9C948A}
+.psc-footer{background:#EFE7DA;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9C948A}
+.psc-footer-name{font-weight:700;color:#4A4340}
+.psc-footer-brand{font-weight:600}
 </style>
 <script>
 async function generateShareCard() {
-  const el = document.getElementById('share-card-content');
+  const el = document.getElementById('pastel-share-card');
   if (!window.html2canvas) {
     alert('正在加载分享功能...');
     return;
   }
   const canvas = await html2canvas(el, {
-    backgroundColor: '#080810', scale: 2, useCORS: true,
+    backgroundColor: null, scale: 2, useCORS: true,
     logging: false,
   });
   const link = document.createElement('a');

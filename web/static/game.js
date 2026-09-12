@@ -111,17 +111,17 @@ function appendWeekToFeed(data) {
     const fgPct  = fga  ? (fgm/fga*100).toFixed(1)+'%'   : '-';
     const fg3Pct = fg3a ? (fg3m/fg3a*100).toFixed(1)+'%' : '-';
     const ftPct  = fta  ? (ftm/fta*100).toFixed(1)+'%'   : '-';
-    const wCol   = wins===total ? '#22c55e' : wins>0 ? '#eab308' : '#ef4444';
+    const wCol   = wins===total ? '#5F8A6B' : wins>0 ? '#A6812E' : '#8B4A56';
     const statsDiv = document.createElement('div');
     statsDiv.className = 'feed-week-stats';
     statsDiv.innerHTML = `
       <span style="color:${wCol};font-weight:700">${wins}胜${total-wins}负</span>
-      <span style="color:#4dc3ff;font-weight:700">${(ws.pts||0).toFixed(1)}分</span>
+      <span style="color:#4A7A94;font-weight:700">${(ws.pts||0).toFixed(1)}分</span>
       ${(ws.reb||0).toFixed(1)}篮　${(ws.ast||0).toFixed(1)}助
-      <span style="color:#22c55e">${(ws.stl||0).toFixed(1)}断</span>
-      <span style="color:#f97316">${(ws.blk||0).toFixed(1)}帽</span>
-      <span style="color:#64748b">${(ws.tov||0).toFixed(1)}失</span><br>
-      <span style="color:#64748b;font-size:12px">
+      <span style="color:#5F8A6B">${(ws.stl||0).toFixed(1)}断</span>
+      <span style="color:#B8663A">${(ws.blk||0).toFixed(1)}帽</span>
+      <span style="color:#9C948A">${(ws.tov||0).toFixed(1)}失</span><br>
+      <span style="color:#9C948A;font-size:12px">
         FG ${fgm}/${fga} (${fgPct})　3P ${fg3m}/${fg3a} (${fg3Pct})　FT ${ftm}/${fta} (${ftPct})
       </span>`;
     weekContainer.appendChild(statsDiv);
@@ -132,21 +132,21 @@ function appendWeekToFeed(data) {
     const imp = data.impact;
     const bonus = imp.wp_bonus;
     const sign  = bonus >= 0 ? '+' : '';
-    const col   = bonus >= 0.10 ? '#22c55e' : bonus >= 0 ? '#eab308' : '#ef4444';
+    const col   = bonus >= 0.10 ? '#5F8A6B' : bonus >= 0 ? '#A6812E' : '#8B4A56';
     const impDiv = document.createElement('div');
     impDiv.style.cssText = `padding:8px 14px;margin-bottom:8px;background:rgba(0,0,0,.3);
-      border-radius:6px;border-left:3px solid ${col};font-size:12px;color:#94a3b8`;
+      border-radius:6px;border-left:3px solid ${col};font-size:12px;color:#7A7168`;
     let html = `<span style="color:${col};font-weight:700">本周影响力：${imp.label}　胜率调整：${sign}${(bonus*100).toFixed(1)}%</span>`;
     if (imp.combos && imp.combos.length > 0)
-      html += `<br><span style="color:#ffc107">★ ${imp.combos[0]}</span>`;
+      html += `<br><span style="color:#8B6F47">★ ${imp.combos[0]}</span>`;
     if (imp.superhuman && imp.superhuman.length > 0)
-      html += `<br><span style="color:#a855f7">⚡ ${imp.superhuman.join(' · ')}</span>`;
+      html += `<br><span style="color:#7A5C96">⚡ ${imp.superhuman.join(' · ')}</span>`;
     const oe = imp.opp_effects || {};
     const oeParts = [];
     if (oe.opp_pts_reduction >= 1) oeParts.push(`对手得分压制 -${oe.opp_pts_reduction.toFixed(1)}`);
     if (oe.opp_tov_increase >= 0.5) oeParts.push(`对手失误增加 +${oe.opp_tov_increase.toFixed(1)}`);
     if (oe.team_pts_boost >= 0.5)   oeParts.push(`队友得分提升 +${oe.team_pts_boost.toFixed(1)}`);
-    if (oeParts.length > 0) html += `<br><span style="color:#64748b">${oeParts.join('　')}</span>`;
+    if (oeParts.length > 0) html += `<br><span style="color:#9C948A">${oeParts.join('　')}</span>`;
     impDiv.innerHTML = html;
     weekContainer.appendChild(impDiv);
   }
@@ -156,7 +156,7 @@ function appendWeekToFeed(data) {
     const noEvent = document.createElement('div');
     noEvent.className = 'feed-item minor';
     noEvent.innerHTML = `<div class="feed-meta">比赛</div>
-      <div class="feed-text" style="color:#475569">本周平静，无特殊事件。</div>`;
+      <div class="feed-text" style="color:#6B6259">本周平静，无特殊事件。</div>`;
     weekContainer.appendChild(noEvent);
   } else {
     data.events.forEach(ev => {
@@ -166,7 +166,7 @@ function appendWeekToFeed(data) {
       let deltaHtml = '';
       if (ev.delta && Object.keys(ev.delta).length > 0) {
         const parts = Object.entries(ev.delta).map(([k,v]) => {
-          const col = v>0 ? '#22c55e' : '#ef4444';
+          const col = v>0 ? '#5F8A6B' : '#8B4A56';
           const sign = v>0 ? '+' : '';
           const lbl = ATTR_LABELS[k] || k;
           return `<span style="color:${col}">${sign}${v} ${lbl}</span>`;
@@ -339,16 +339,16 @@ async function applyChoice(choiceData, chosenKey) {
         let deltaHtml = '';
         if (data.delta && Object.keys(data.delta).length) {
           const parts = Object.entries(data.delta).map(([k,v]) => {
-            const col = v>0 ? '#22c55e' : '#ef4444';
+            const col = v>0 ? '#5F8A6B' : '#8B4A56';
             return `<span style="color:${col}">${v>0?'+':''}${v} ${ATTR_LABELS[k]||k}</span>`;
           });
           deltaHtml = `<div class="feed-delta">${parts.join('　')}</div>`;
         }
         el.innerHTML = `
-          <div class="feed-meta" style="color:#a855f7">⚡ 你的选择</div>
-          <div class="feed-title" style="color:#c084fc">▶ ${opt.label}</div>
+          <div class="feed-meta" style="color:#7A5C96">⚡ 你的选择</div>
+          <div class="feed-title" style="color:#6B4F86">▶ ${opt.label}</div>
           <div class="feed-text">${(opt.narrative||'').trim().slice(0,300)}</div>
-          <div style="color:${scope.cls==='scope-career'?'#ffc107':scope.cls==='scope-season'?'#eab308':'#4dc3ff'};font-size:12px;margin-top:6px">${scope.text}</div>
+          <div style="color:${scope.cls==='scope-career'?'#8B6F47':scope.cls==='scope-season'?'#A6812E':'#4A7A94'};font-size:12px;margin-top:6px">${scope.text}</div>
           ${deltaHtml}`;
         feed.appendChild(el);
         feed.scrollTop = feed.scrollHeight;
@@ -370,9 +370,9 @@ function showSeasonEnd() {
   if (btn) {
     btn.disabled = true;
     btn.textContent = '赛季结束';
-    btn.style.background = 'linear-gradient(135deg,#1a1000,#2a1800)';
-    btn.style.borderColor = '#ffc107';
-    btn.style.color = '#ffc107';
+    btn.style.background = 'linear-gradient(135deg,#F5E6A3,#EDD97A)';
+    btn.style.borderColor = '#8B6F47';
+    btn.style.color = '#8B6F47';
   }
   const navWeek = document.getElementById('nav-week');
   if (navWeek) navWeek.textContent = '赛季结束';
@@ -380,10 +380,10 @@ function showSeasonEnd() {
   const feed = document.getElementById('event-feed');
   if (feed) {
     const el = document.createElement('div');
-    el.innerHTML = `<div style="text-align:center;padding:24px;color:#ffc107;font-size:18px;font-weight:800;
-      border:1px solid #ffc107;border-radius:12px;background:rgba(255,193,7,.08);margin-top:12px">
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:#8B6F47;font-size:18px;font-weight:800;
+      border:1px solid #8B6F47;border-radius:12px;background:rgba(255,193,7,.08);margin-top:12px">
       ══ 赛季结束 ══<br>
-      <span style="font-size:13px;color:#94a3b8;font-weight:400;display:block;margin-top:8px">
+      <span style="font-size:13px;color:#7A7168;font-weight:400;display:block;margin-top:8px">
         点击「查看完整数据」查看生涯统计和历史地位
       </span>
     </div>`;
@@ -452,9 +452,9 @@ function showToast(msg, isError = false) {
   t.textContent = msg;
   t.style.cssText = `
     position:fixed; top:60px; left:50%; transform:translateX(-50%);
-    background:${isError ? '#2a0a0a' : '#0a2810'};
-    border:1px solid ${isError ? '#ef4444' : '#22c55e'};
-    color:${isError ? '#ef4444' : '#22c55e'};
+    background:${isError ? '#F3D9DC' : '#CBDAC0'};
+    border:1px solid ${isError ? '#8B4A56' : '#5F8A6B'};
+    color:${isError ? '#8B4A56' : '#5F8A6B'};
     padding:8px 20px; border-radius:20px; font-size:13px; font-weight:600;
     z-index:9999; pointer-events:none;
     animation: fadeInOut 2.5s ease forwards;

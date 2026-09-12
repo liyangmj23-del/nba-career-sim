@@ -33,8 +33,8 @@
     </div>
 
     <div style="position:relative;text-align:center;margin:16px 0">
-      <span style="background:#0a0a18;padding:0 12px;color:#1e2040;font-size:12px;position:relative;z-index:1">或者</span>
-      <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:#1e2040"></div>
+      <span style="background:#F5F0E6;padding:0 12px;color:#E4DCD0;font-size:12px;position:relative;z-index:1">或者</span>
+      <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:#E4DCD0"></div>
     </div>
 
     <div class="menu-btns">
@@ -55,10 +55,10 @@
           </div>
         </a>
         <button onclick="renamePrompt({{ s.save_id }}, '{{ s.save_name }}')"
-          style="background:none;border:none;color:#475569;cursor:pointer;font-size:14px;padding:8px">✏️</button>
+          style="background:none;border:none;color:#6B6259;cursor:pointer;font-size:14px;padding:8px">✏️</button>
         <form method="post" action="/saves/{{ s.save_id }}/delete"
               onsubmit="return confirm('确认删除「{{ s.save_name }}」？')" style="flex-shrink:0">
-          <button type="submit" style="background:none;border:none;color:#475569;cursor:pointer;font-size:16px;padding:8px">🗑</button>
+          <button type="submit" style="background:none;border:none;color:#6B6259;cursor:pointer;font-size:16px;padding:8px">🗑</button>
         </form>
       </div>
       {% endfor %}
@@ -85,14 +85,14 @@ function renamePrompt(saveId, currentName) {
 }
 </script>
 <style>
-.menu-whatif-section{margin-bottom:16px;background:#0a1520;border:1px solid #1e3060;border-radius:10px;padding:14px}
-.menu-whatif-label{font-size:11px;color:#4dc3ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600}
+.menu-whatif-section{margin-bottom:16px;background:#E8F2F5;border:1px solid #A8CDD9;border-radius:10px;padding:14px}
+.menu-whatif-label{font-size:11px;color:#4A7A94;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600}
 .menu-scenarios-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
-.msp-item{background:#0d1a2a;border:1px solid #1e3060;border-radius:8px;padding:8px;text-align:center;cursor:pointer;transition:all .2s;display:block}
-.msp-item:hover{border-color:#4dc3ff;background:#0d1e30}
+.msp-item{background:#E8F2F5;border:1px solid #A8CDD9;border-radius:8px;padding:8px;text-align:center;cursor:pointer;transition:all .2s;display:block}
+.msp-item:hover{border-color:#4A7A94;background:#E8F2F5}
 .msp-icon{display:block;font-size:18px;margin-bottom:3px}
-.msp-name{display:block;font-size:10px;color:#e2e8f0;font-weight:600}
-.msp-stats{display:block;font-size:9px;color:#64748b;margin-top:2px}
+.msp-name{display:block;font-size:10px;color:#4A4340;font-weight:600}
+.msp-stats{display:block;font-size:9px;color:#9C948A;margin-top:2px}
 .save-item-row{display:flex;align-items:center;gap:0;margin-bottom:6px}
 .save-item-row .save-item{border-radius:8px 0 0 8px;margin-bottom:0}
 </style>

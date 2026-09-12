@@ -94,6 +94,8 @@ def get_season_summary(save_id: int, player_id: int, season_year: int) -> dict:
         season_stats.get("pts", 0), season_stats.get("reb", 0),
         season_stats.get("ast", 0), season_stats.get("stl", 0),
         season_stats.get("blk", 0), season_stats.get("tov", 2.5),
+        fg_pct=season_stats.get("fg", 46.5) / 100,
+        position=player.position or "SF",
     )
     from simulation.team_simulator import _team_rating
     my_team_id = save.current_team_id

@@ -6,21 +6,32 @@
 <title>{% block title %}NBA 生涯模拟器{% endblock %}</title>
 <script src="/static/chart.min.js"></script>
 <link rel="stylesheet" href="/static/nba.css">
+{% if team_colors %}
+<style>
+  :root {
+    --cyan: {{ team_colors.primary }};
+    --gold: {{ team_colors.secondary }};
+  }
+</style>
+{% endif %}
 </head>
 <body>
 
 <!-- 更新提示条（有新版本时显示） -->
-<div id="update-banner" style="display:none;background:#1a2a00;border-bottom:1px solid #4ade80;
-  padding:6px 20px;font-size:12px;color:#4ade80;text-align:center">
+<div id="update-banner" style="display:none;background:#E8F0D0;border-bottom:1px solid #4A7050;
+  padding:6px 20px;font-size:12px;color:#4A7050;text-align:center">
   🎉 发现新版本 <span id="update-ver"></span>！
   <a id="update-link" href="#" target="_blank"
-    style="color:#86efac;font-weight:700;margin-left:8px">查看更新内容 →</a>
+    style="color:#4F7A5A;font-weight:700;margin-left:8px">查看更新内容 →</a>
   <button onclick="document.getElementById('update-banner').style.display='none'"
-    style="float:right;background:none;border:none;color:#4ade80;cursor:pointer;font-size:14px">✕</button>
+    style="float:right;background:none;border:none;color:#4A7050;cursor:pointer;font-size:14px">✕</button>
 </div>
 
 <nav class="navbar">
   <a class="logo" href="/">NBA SIM</a>
+  {% if team_colors and team_colors.logo %}
+  <img src="{{ team_colors.logo }}" alt="" class="nav-team-logo" onerror="this.style.display='none'">
+  {% endif %}
   {% block nav_extra %}{% endblock %}
   <a href="/settings" class="nav-settings-btn" title="设置">⚙</a>
 </nav>

@@ -191,6 +191,9 @@ def run_season(save_id: int, season_year: int = CURRENT_SEASON_YEAR):
         pre_impact = compute_impact(
             expected["pts"], expected["reb"], expected["ast"],
             expected["stl"], expected["blk"], expected.get("tov", 2.5),
+            fg_pct=expected.get("fg_pct", 0.465),
+            position=player.position or "SF",
+            attrs=attrs,
         )
 
         for g_idx in range(n_games):

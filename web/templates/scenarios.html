@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% block title %}假如场景库 · NBA 假如模拟器{% endblock %}
 {% block nav_extra %}
-<div class="nav-center" style="color:#4dc3ff;font-weight:700">🔥 选择你的假如场景</div>
+<div class="nav-center" style="color:#4A7A94;font-weight:700">🔥 选择你的假如场景</div>
 <div class="nav-right"><a class="btn btn-ghost btn-sm" href="/">← 返回</a></div>
 {% endblock %}
 
 {% block content %}
 <div class="page-wrap">
   <div style="text-align:center;padding:24px 0 8px">
-    <div style="font-size:32px;font-weight:900;color:#4dc3ff">NBA 假如模拟器</div>
-    <div style="color:#64748b;margin-top:8px;font-size:15px">选一个场景，30秒内开始验证</div>
+    <div style="font-size:32px;font-weight:900;color:#4A7A94">NBA 假如模拟器</div>
+    <div style="color:#9C948A;margin-top:8px;font-size:15px">选一个场景，30秒内开始验证</div>
   </div>
 
   {% set tags = ['经典争议', '假如极限'] %}
   {% for tag in tags %}
   <div style="margin:32px 0 12px">
-    <div style="font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:2px;font-weight:600">
+    <div style="font-size:13px;color:#9C948A;text-transform:uppercase;letter-spacing:2px;font-weight:600">
       {{ tag }}
     </div>
   </div>
@@ -37,7 +37,7 @@
         选球员开始验证 →
       </a>
       <a href="/create-player?scenario_id={{ s.id }}"
-         style="display:block;text-align:center;font-size:11px;color:#64748b;margin-top:6px">
+         style="display:block;text-align:center;font-size:11px;color:#9C948A;margin-top:6px">
         或新建虚构球员验证
       </a>
     </div>
@@ -46,14 +46,14 @@
   {% endfor %}
 
   <div style="margin:32px 0 12px">
-    <div style="font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:2px;font-weight:600">
+    <div style="font-size:13px;color:#9C948A;text-transform:uppercase;letter-spacing:2px;font-weight:600">
       你的假如
     </div>
   </div>
   <div class="custom-scenario-card">
     <div style="font-size:24px;margin-bottom:8px">⚡</div>
-    <div style="font-size:18px;font-weight:700;color:#4dc3ff;margin-bottom:6px">完全自定义</div>
-    <div style="color:#64748b;font-size:13px;margin-bottom:16px">输入你想验证的任意数据组合</div>
+    <div style="font-size:18px;font-weight:700;color:#4A7A94;margin-bottom:6px">完全自定义</div>
+    <div style="color:#9C948A;font-size:13px;margin-bottom:16px">输入你想验证的任意数据组合</div>
     <div class="custom-inputs">
       {% for k, lbl in [('pts','得分/场'),('reb','篮板/场'),('ast','助攻/场'),('stl','抢断/场'),('blk','盖帽/场')] %}
       <div class="ci-row">
@@ -70,10 +70,10 @@
 
 <!-- 选球员弹窗 -->
 <div id="player-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#0d0d1a;border:1px solid #1e2040;border-radius:16px;padding:24px;width:100%;max-width:600px">
-    <div style="font-size:18px;font-weight:700;color:#4dc3ff;margin-bottom:16px" id="modal-title">选择球员开始验证</div>
+  <div style="background:#FFFFFF;border:1px solid #E4DCD0;border-radius:16px;padding:24px;width:100%;max-width:600px">
+    <div style="font-size:18px;font-weight:700;color:#4A7A94;margin-bottom:16px" id="modal-title">选择球员开始验证</div>
     <form method="post" action="/select" style="display:flex;gap:10px;margin-bottom:16px" onsubmit="return false">
-      <input id="modal-search" placeholder="搜索球员姓名..." style="flex:1;background:#12122a;border:1px solid #2a3060;border-radius:8px;padding:8px 12px;color:#fff;font-size:13px">
+      <input id="modal-search" placeholder="搜索球员姓名..." style="flex:1;background:#F0EAE0;border:1px solid #A8CDD9;border-radius:8px;padding:8px 12px;color:#4A4340;font-size:13px">
       <button class="btn btn-primary btn-sm" onclick="searchPlayers()">搜索</button>
     </form>
     <div id="modal-players" style="max-height:300px;overflow-y:auto"></div>
@@ -88,17 +88,17 @@
 {% block scripts %}
 <style>
 .scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.scenario-card{background:#0d0d1a;border:1px solid #1e2040;border-radius:12px;padding:18px;cursor:pointer;transition:all .2s}
-.scenario-card:hover{border-color:#4dc3ff;background:#0d0d20;transform:translateY(-2px)}
+.scenario-card{background:#FFFFFF;border:1px solid #E4DCD0;border-radius:12px;padding:18px;cursor:pointer;transition:all .2s}
+.scenario-card:hover{border-color:#4A7A94;background:#E8F2F5;transform:translateY(-2px)}
 .sc-icon{font-size:28px;margin-bottom:8px}
-.sc-name{font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:6px}
-.sc-desc{font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.5}
+.sc-name{font-size:16px;font-weight:700;color:#4A4340;margin-bottom:6px}
+.sc-desc{font-size:12px;color:#9C948A;margin-bottom:12px;line-height:1.5}
 .sc-stats{display:flex;flex-wrap:wrap;gap:5px}
-.stat-pill{background:#12122a;border:1px solid #1e2040;border-radius:20px;padding:3px 10px;font-size:11px;color:#94a3b8}
-.custom-scenario-card{background:#0d0d1a;border:1px solid #2a3060;border-radius:12px;padding:24px;text-align:center}
+.stat-pill{background:#F0EAE0;border:1px solid #E4DCD0;border-radius:20px;padding:3px 10px;font-size:11px;color:#7A7168}
+.custom-scenario-card{background:#FFFFFF;border:1px solid #A8CDD9;border-radius:12px;padding:24px;text-align:center}
 .custom-inputs{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;text-align:left}
-.ci-row label{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
-.ci-row input{width:100%;background:#12122a;border:1px solid #2a3060;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px}
+.ci-row label{display:block;font-size:11px;color:#9C948A;margin-bottom:4px}
+.ci-row input{width:100%;background:#F0EAE0;border:1px solid #A8CDD9;border-radius:6px;padding:6px 8px;color:#4A4340;font-size:13px}
 @media(max-width:600px){.custom-inputs{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script>
@@ -128,7 +128,7 @@ function startCustom() {
 
 function showModal() {
   document.getElementById('player-modal').style.display = 'flex';
-  document.getElementById('modal-players').innerHTML = '<div style="color:#64748b;text-align:center;padding:20px">搜索球员，或直接新建虚构球员</div>';
+  document.getElementById('modal-players').innerHTML = '<div style="color:#9C948A;text-align:center;padding:20px">搜索球员，或直接新建虚构球员</div>';
 }
 
 async function searchPlayers() {
@@ -137,14 +137,14 @@ async function searchPlayers() {
   const resp = await fetch(`/select?q=${encodeURIComponent(q)}`);
   // 解析返回的HTML取出球员数据（简化：用fetch JSON接口）
   const container = document.getElementById('modal-players');
-  container.innerHTML = '<div style="color:#64748b;padding:12px">加载中...</div>';
+  container.innerHTML = '<div style="color:#9C948A;padding:12px">加载中...</div>';
 
   // 直接创建选球员链接（跳转方式）
   // 改为直接请求player_select页面JSON格式
-  container.innerHTML = `<div style="color:#94a3b8;font-size:13px;padding:8px">
+  container.innerHTML = `<div style="color:#7A7168;font-size:13px;padding:8px">
     搜索结果将在球员选择页显示。<br>
     <a href="/select?q=${encodeURIComponent(q)}&scenario=${encodeURIComponent(JSON.stringify(selectedScenario.stats))}"
-       style="color:#4dc3ff;text-decoration:underline">点击前往球员选择页</a>
+       style="color:#4A7A94;text-decoration:underline">点击前往球员选择页</a>
   </div>`;
 }
 

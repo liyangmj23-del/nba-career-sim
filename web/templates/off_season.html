@@ -7,9 +7,9 @@
 {% block content %}
 <div class="off-season-wrap">
   <div style="text-align:center;padding:32px 0 24px">
-    <div style="font-size:13px;color:#64748b;letter-spacing:2px;text-transform:uppercase">休赛期</div>
-    <div style="font-size:28px;font-weight:800;color:#e2e8f0;margin:8px 0">赛季结束了。</div>
-    <div style="color:#64748b;font-size:14px;line-height:1.6">
+    <div style="font-size:13px;color:#9C948A;letter-spacing:2px;text-transform:uppercase">休赛期</div>
+    <div style="font-size:28px;font-weight:800;color:#4A4340;margin:8px 0">赛季结束了。</div>
+    <div style="color:#9C948A;font-size:14px;line-height:1.6">
       这是一个属于休整和思考的时间。<br>
       身体在恢复，下一个赛季在等待。
     </div>
@@ -26,7 +26,7 @@
 
   <!-- 休赛期选项 -->
   <div class="os-options">
-    <div style="font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px">休赛期重点</div>
+    <div style="font-size:13px;color:#9C948A;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px">休赛期重点</div>
 
     <div class="os-option" onclick="selectOption(this,'training')" data-option="training">
       <div class="oo-icon">💪</div>
@@ -74,7 +74,7 @@
         进入下一赛季 →
       </button>
     </form>
-    <div style="color:#475569;font-size:12px;margin-top:12px">
+    <div style="color:#6B6259;font-size:12px;margin-top:12px">
       年龄 +1　属性将根据年龄自动调整
     </div>
   </div>
@@ -84,17 +84,17 @@
 {% block scripts %}
 <style>
 .off-season-wrap{max-width:600px;margin:0 auto;padding:24px}
-.os-narrative{background:#0d0d1a;border:1px solid #1e2040;border-radius:12px;padding:20px;margin-bottom:24px;font-size:14px;color:#94a3b8;line-height:1.8}
+.os-narrative{background:#FFFFFF;border:1px solid #E4DCD0;border-radius:12px;padding:20px;margin-bottom:24px;font-size:14px;color:#7A7168;line-height:1.8}
 .os-narrative p{margin-bottom:10px}
 .os-options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
-.os-option{display:flex;gap:16px;align-items:flex-start;background:#0d0d1a;border:1px solid #1e2040;border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
-.os-option:hover{border-color:#4dc3ff}
-.os-option.selected{border-color:#4dc3ff;background:#0d0d20}
+.os-option{display:flex;gap:16px;align-items:flex-start;background:#FFFFFF;border:1px solid #E4DCD0;border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.os-option:hover{border-color:#4A7A94}
+.os-option.selected{border-color:#4A7A94;background:#E8F2F5}
 .oo-icon{font-size:24px;flex-shrink:0;width:36px;text-align:center}
-.oo-title{font-weight:700;font-size:14px;color:#e2e8f0;margin-bottom:4px}
-.oo-desc{font-size:12px;color:#64748b;margin-bottom:6px}
-.oo-effect{font-size:11px;color:#22c55e;font-weight:600}
-.btn-advance{background:linear-gradient(135deg,#0a2810,#0d3818);border:1px solid #1e6030;color:#4ade80;font-weight:800;border-radius:10px;cursor:pointer}
+.oo-title{font-weight:700;font-size:14px;color:#4A4340;margin-bottom:4px}
+.oo-desc{font-size:12px;color:#9C948A;margin-bottom:6px}
+.oo-effect{font-size:11px;color:#5F8A6B;font-weight:600}
+.btn-advance{background:linear-gradient(135deg,#CBDAC0,#BDD0AE);border:1px solid #9FB894;color:#4A7050;font-weight:800;border-radius:10px;cursor:pointer}
 </style>
 <script>
 // 默认选中休息

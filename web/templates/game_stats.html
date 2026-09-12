@@ -46,7 +46,7 @@
         <tbody>
           {% for g in games %}
           <tr>
-            <td style="color:#64748b;font-size:11px">{{ g.year-1 if g.year else '-' }}-{{ (g.year|string)[2:] if g.year else '-' }}</td>
+            <td style="color:#9C948A;font-size:11px">{{ g.year-1 if g.year else '-' }}-{{ (g.year|string)[2:] if g.year else '-' }}</td>
             <td>第{{ g.week }}周</td><td>G{{ g.gnum }}</td>
             <td class="{{ 'home' if g.home else 'away' }}">{{ '主' if g.home else '客' }}</td>
             <td><b>{{ g.opp }}</b></td>
@@ -157,7 +157,7 @@
     <div class="comp-grid">
       {% for c in h.comparisons %}
       {% set pct = c.pct %}
-      {% set col = '#ffc107' if pct >= 100 else ('#4dc3ff' if pct >= 70 else '#94a3b8') %}
+      {% set col = '#8B6F47' if pct >= 100 else ('#4A7A94' if pct >= 70 else '#7A7168') %}
       <div class="comp-card">
         <div class="comp-label">{{ c.label }}</div>
         <div class="comp-val" style="color:{{ col }}">{{ '{:,}'.format(c.value) }}</div>
@@ -193,31 +193,31 @@ if (gameLogData.length > 0) {
   const labels = gameLogData.map(g => `G${g.gnum}`);
   const chartDefaults = {
     options: {
-      plugins: { legend: { labels: { color:'#94a3b8', font:{size:11} } } },
+      plugins: { legend: { labels: { color:'#7A7168', font:{size:11} } } },
       scales: {
-        x: { ticks:{color:'#64748b',font:{size:10}}, grid:{color:'rgba(30,32,64,.5)'} },
-        y: { ticks:{color:'#64748b',font:{size:10}}, grid:{color:'rgba(30,32,64,.5)'} }
+        x: { ticks:{color:'#9C948A',font:{size:10}}, grid:{color:'rgba(30,32,64,.5)'} },
+        y: { ticks:{color:'#9C948A',font:{size:10}}, grid:{color:'rgba(30,32,64,.5)'} }
       }
     }
   };
   new Chart(document.getElementById('pts-chart'), {
     type:'line', ...chartDefaults,
     data:{ labels, datasets:[{ label:'得分', data:gameLogData.map(g=>g.pts),
-      borderColor:'#4dc3ff', backgroundColor:'rgba(77,195,255,.1)',
+      borderColor:'#4A7A94', backgroundColor:'rgba(77,195,255,.1)',
       borderWidth:2, fill:true, tension:0.3, pointRadius:3 }] }
   });
   new Chart(document.getElementById('reb-ast-chart'), {
     type:'line', ...chartDefaults,
     data:{ labels, datasets:[
-      {label:'篮板',data:gameLogData.map(g=>g.reb),borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.1)',borderWidth:2,fill:true,tension:0.3,pointRadius:3},
-      {label:'助攻',data:gameLogData.map(g=>g.ast),borderColor:'#eab308',backgroundColor:'rgba(234,179,8,.05)',borderWidth:2,fill:false,tension:0.3,pointRadius:3}
+      {label:'篮板',data:gameLogData.map(g=>g.reb),borderColor:'#5F8A6B',backgroundColor:'rgba(34,197,94,.1)',borderWidth:2,fill:true,tension:0.3,pointRadius:3},
+      {label:'助攻',data:gameLogData.map(g=>g.ast),borderColor:'#A6812E',backgroundColor:'rgba(234,179,8,.05)',borderWidth:2,fill:false,tension:0.3,pointRadius:3}
     ]}
   });
   new Chart(document.getElementById('stl-blk-chart'), {
     type:'line', ...chartDefaults,
     data:{ labels, datasets:[
-      {label:'抢断',data:gameLogData.map(g=>g.stl),borderColor:'#a855f7',backgroundColor:'rgba(168,85,247,.1)',borderWidth:2,fill:true,tension:0.3,pointRadius:3},
-      {label:'盖帽',data:gameLogData.map(g=>g.blk),borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.05)',borderWidth:2,fill:false,tension:0.3,pointRadius:3}
+      {label:'抢断',data:gameLogData.map(g=>g.stl),borderColor:'#7A5C96',backgroundColor:'rgba(168,85,247,.1)',borderWidth:2,fill:true,tension:0.3,pointRadius:3},
+      {label:'盖帽',data:gameLogData.map(g=>g.blk),borderColor:'#B8663A',backgroundColor:'rgba(249,115,22,.05)',borderWidth:2,fill:false,tension:0.3,pointRadius:3}
     ]}
   });
 }
@@ -259,7 +259,7 @@ function closeBoxModal() {
 
 function renderBoxScore(data) {
   const renderTeam = (team) => {
-    const scoreCol = team.won ? '#22c55e' : '#ef4444';
+    const scoreCol = team.won ? '#5F8A6B' : '#8B4A56';
     const rows = team.players.map(p => {
       const heroClass = p.is_hero ? 'hero-row' : '';
       const fgPct = p.fga ? (p.fgm/p.fga*100).toFixed(0)+'%' : '-';

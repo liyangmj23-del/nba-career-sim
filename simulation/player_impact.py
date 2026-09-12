@@ -214,7 +214,7 @@ def expected_stats_from_attrs(attrs: dict, position: str = "SF") -> dict:
     fatigue_m = max(0.3, 1.0 - attrs.get("fatigue", 0) * 0.004)
     morale_m  = 0.85 + n("morale") * 0.3
 
-    state = health_m * fatigue_m * morale_m
+    state = max(0.05, health_m * fatigue_m * morale_m)
 
     pts = (4 + n("shooting_2pt")*16 + n("shooting_3pt")*6 +
            n("basketball_iq")*4 + n("clutch_factor")*2) * state

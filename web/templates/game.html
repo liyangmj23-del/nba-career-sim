@@ -23,7 +23,12 @@
     <div class="player-identity">
       <div class="player-pos">{{ player.position or '?' }}</div>
       <div class="player-name-lg">{{ player.full_name }}</div>
-      <div class="player-team">{{ team_name }}</div>
+      <div class="player-team">
+        {% if team_colors and team_colors.logo %}
+        <img src="{{ team_colors.logo }}" alt="" class="player-team-logo" onerror="this.style.display='none'">
+        {% endif %}
+        {{ team_name }}
+      </div>
     </div>
 
     <!-- 综合评级 + 状态 -->
@@ -57,7 +62,7 @@
       {% for key, lbl in [('speed','速度'),('strength','力量'),('vertical','弹跳'),('endurance','耐力')] %}
       <div class="attr-row">
         <span class="alabel">{{ lbl }}</span>
-        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#4dc3ff' if attrs.get(key,50) >= 75 else ('#22c55e' if attrs.get(key,50) >= 60 else '#94a3b8') }}"></div></div>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#4A7A94' if attrs.get(key,50) >= 75 else ('#5F8A6B' if attrs.get(key,50) >= 60 else '#7A7168') }}"></div></div>
         <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
       </div>
       {% endfor %}
@@ -66,7 +71,7 @@
       {% for key, lbl in [('ball_handling','控球'),('shooting_2pt','两分'),('shooting_3pt','三分'),('free_throw','罚球'),('passing','传球')] %}
       <div class="attr-row">
         <span class="alabel">{{ lbl }}</span>
-        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#ffc107' if attrs.get(key,50) >= 80 else ('#4dc3ff' if attrs.get(key,50) >= 65 else '#94a3b8') }}"></div></div>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#8B6F47' if attrs.get(key,50) >= 80 else ('#4A7A94' if attrs.get(key,50) >= 65 else '#7A7168') }}"></div></div>
         <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
       </div>
       {% endfor %}
@@ -75,7 +80,7 @@
       {% for key, lbl in [('perimeter_def','外防'),('interior_def','内防'),('steal_tendency','抢断'),('block_tendency','盖帽')] %}
       <div class="attr-row">
         <span class="alabel">{{ lbl }}</span>
-        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#22c55e' if attrs.get(key,50) >= 75 else '#94a3b8' }}"></div></div>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#5F8A6B' if attrs.get(key,50) >= 75 else '#7A7168' }}"></div></div>
         <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
       </div>
       {% endfor %}
@@ -84,7 +89,7 @@
       {% for key, lbl in [('basketball_iq','篮球IQ'),('clutch_factor','关键时刻'),('leadership','领导力'),('work_ethic','勤奋')] %}
       <div class="attr-row">
         <span class="alabel">{{ lbl }}</span>
-        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#a855f7' if attrs.get(key,50) >= 75 else '#94a3b8' }}"></div></div>
+        <div class="abar-wrap"><div class="abar" id="abar-{{ key }}" style="width:{{ attrs.get(key,50) }}%;background:{{ '#7A5C96' if attrs.get(key,50) >= 75 else '#7A7168' }}"></div></div>
         <span class="aval" id="aval-{{ key }}">{{ attrs.get(key, 50) }}</span>
       </div>
       {% endfor %}
@@ -193,7 +198,7 @@
       <form method="post" action="/game/{{ save.save_id }}/retire"
             onsubmit="return confirm('确认退役？生涯将正式结束。')">
         <button type="submit" class="btn btn-ghost btn-full"
-          style="color:#475569;font-size:11px;margin-top:4px">
+          style="color:#6B6259;font-size:11px;margin-top:4px">
           宣布退役（第{{ save.career_year }}年）
         </button>
       </form>
@@ -218,8 +223,8 @@
 
 {% block scripts %}
 <style>
-.btn-season-end{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#1a1000,#2a2000);border:2px solid #ffc107;border-radius:10px;color:#ffc107;font-weight:800;font-size:14px;text-align:center;cursor:pointer;text-decoration:none}
-.btn-season-end:hover{background:linear-gradient(135deg,#2a2000,#3a3000)}
+.btn-season-end{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#F5E6A3,#F0E0A0);border:2px solid #8B6F47;border-radius:10px;color:#8B6F47;font-weight:800;font-size:14px;text-align:center;cursor:pointer;text-decoration:none}
+.btn-season-end:hover{background:linear-gradient(135deg,#F0E0A0,#E0CC70)}
 </style>
 <script>
 const SAVE_ID = {{ save.save_id }};

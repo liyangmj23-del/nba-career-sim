@@ -19,6 +19,7 @@ from simulation.achievement_tracker import evaluate_season
 from simulation.historical_standing import build_historical_report
 from seeding.data_transformer import derive_attributes
 from config import CURRENT_SEASON_YEAR
+from web.team_colors import get_team_colors
 
 app = Flask(__name__)
 app.secret_key = "nba-sim-secret-2025"
@@ -215,14 +216,14 @@ def game(save_id):
     if not player:
         return redirect(url_for("menu"))
 
-    attr = player_repo.get_attributes(player.player_id, CURRENT_SEASON_YEAR)
+    attr = player_repo.get_attributes(player.player_id, save.current_season)
     attrs = {}
     if attr:
         skip = {"attr_id","player_id","season_year"}
         attrs = {k: getattr(attr, k) for k in attr.__dataclass_fields__ if k not in skip}
 
     # 赛季累计统计
-    season_stats = _get_season_stats(player.player_id, CURRENT_SEASON_YEAR)
+    season_stats = _get_season_stats(player.player_id, save.current_season)
 
     # 已有事件（最近30条）
     events = event_repo.get_by_save(save_id, limit=50)
@@ -244,7 +245,8 @@ def game(save_id):
         season_stats=season_stats, events=events,
         team_name=team_name, overrides=overrides,
         season_done=season_done,
-        CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR,
+        CURRENT_SEASON_YEAR=save.current_season,
+        team_colors=_team_colors_for(save.current_team_id),
     )
 
 
@@ -258,7 +260,7 @@ def advance_week(save_id):
         if not save or save.current_week > 30:
             return jsonify({"season_done": True, "week": save.current_week if save else 31})
 
-        wr = run_one_week(save_id, CURRENT_SEASON_YEAR)
+        wr = run_one_week(save_id, save.current_season)
         if wr is None:
             return jsonify({"season_done": True, "week": 31})
 
@@ -288,7 +290,7 @@ def apply_choice(save_id):
     if not save:
         return jsonify({"ok": False})
     player = player_repo.get_by_id(save.player_id)
-    attr   = player_repo.get_attributes(player.player_id, CURRENT_SEASON_YEAR)
+    attr   = player_repo.get_attributes(player.player_id, save.current_season)
     if not attr:
         return jsonify({"ok": False})
 
@@ -311,12 +313,12 @@ def apply_choice(save_id):
         delta[a_name] = resolved
         attrs[a_name]  = new_val
     if delta:
-        player_repo.update_attributes(player.player_id, CURRENT_SEASON_YEAR, attrs)
+        player_repo.update_attributes(player.player_id, save.current_season, attrs)
 
     # 记录选择
     event_repo.append({
         "save_id": save_id, "player_id": player.player_id,
-        "season_year": CURRENT_SEASON_YEAR,
+        "season_year": save.current_season,
         "week_number": save.current_week - 1,
         "event_key": f"choice.{chosen_key}",
         "category": "career_milestones", "severity": "major",
@@ -376,7 +378,7 @@ def update_attrs(save_id):
 
     if updates:
         # 重算综合评分
-        attr = player_repo.get_attributes(player.player_id, CURRENT_SEASON_YEAR)
+        attr = player_repo.get_attributes(player.player_id, save.current_season)
         if attr:
             skip = {"attr_id","player_id","season_year"}
             merged = {k: getattr(attr, k) for k in attr.__dataclass_fields__ if k not in skip}
@@ -390,7 +392,7 @@ def update_attrs(save_id):
             updates["overall_rating"] = max(1, min(99, round(
                 sum(merged.get(k,50) for k in skill_keys) / len(skill_keys)
             )))
-        player_repo.update_attributes(player.player_id, CURRENT_SEASON_YEAR, updates)
+        player_repo.update_attributes(player.player_id, save.current_season, updates)
 
     return jsonify({"ok": True})
 
@@ -461,6 +463,7 @@ def game_stats(save_id):
         season_rows=season_rows, awards=awards,
         history=history, events=events,
         CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR,
+        team_colors=_team_colors_for(save.current_team_id),
     )
 
 
@@ -504,21 +507,31 @@ def box_score(save_id, game_num):
 
     from simulation.game_simulator import generate_full_box_score
     from simulation.team_simulator import get_opponent, _ALL_TEAM_IDS
+    from simulation.player_impact import compute_impact
     import random as _rnd
 
     # my_team_id / opp_id 可能为 None（自由球员）→ 随机取真实球队
     my_tid  = save.current_team_id or _rnd.choice(_ALL_TEAM_IDS)
     opp_tid = opp_id or get_opponent(my_tid)
 
+    # 用这场真实数据算对手压制效果（抢断/盖帽/篮板/助攻拖累对方数据）
+    fga_hero = row[10] or 0
+    game_impact = compute_impact(
+        row[3], row[4], row[5], row[6], row[7], row[8],
+        fg_pct=(row[9] / fga_hero) if fga_hero else 0.465,
+        position=player.position or "SF",
+    )
+
     box = generate_full_box_score(
         my_team_id   = my_tid,
         opp_team_id  = opp_tid,
-        season_year  = CURRENT_SEASON_YEAR,
+        season_year  = save.current_season,
         game_week    = game_week,
         game_number  = game_num,
         player_id    = player.player_id,
         hero_box     = _FakeBox(row),
         my_team_won  = bool(won),
+        opp_suppression = game_impact["opp_effects"],
     )
 
     def team_dict(t):
@@ -656,7 +669,8 @@ def season_end(save_id):
     retirement = check_retirement(save_id, player.player_id)
     return render_template("season_summary.html",
         summary=summary, retirement=retirement,
-        CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+        CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR,
+        team_colors=_team_colors_for(save.current_team_id))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -687,6 +701,8 @@ def playoffs(save_id):
         season_stats.get("pts",0), season_stats.get("reb",0),
         season_stats.get("ast",0), season_stats.get("stl",0),
         season_stats.get("blk",0), season_stats.get("tov",2.5),
+        fg_pct=season_stats.get("fg", 46.5) / 100,
+        position=player.position or "SF",
     )
     base_wp = win_probability(my_rating, opp_rating)
 
@@ -719,7 +735,8 @@ def playoffs(save_id):
 
     return render_template("playoff.html",
         save=save, player=player, result=result,
-        season_year=season_year, CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+        season_year=season_year, CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR,
+        team_colors=_team_colors_for(save.current_team_id))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -733,7 +750,8 @@ def off_season(save_id):
     player = player_repo.get_by_id(save.player_id)
     return render_template("off_season.html",
         save=save, player=player,
-        CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+        CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR,
+        team_colors=_team_colors_for(save.current_team_id))
 
 
 @app.route("/game/<int:save_id>/next-season", methods=["POST"])
@@ -787,7 +805,8 @@ def career_end(save_id):
     from simulation.season_manager import get_career_end_summary
     summary = get_career_end_summary(save_id, player.player_id)
     return render_template("career_end.html", summary=summary,
-                           CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR)
+                           CURRENT_SEASON_YEAR=CURRENT_SEASON_YEAR,
+                           team_colors=_team_colors_for(save.current_team_id))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -836,6 +855,14 @@ def update_info():
 
 
 # ── 辅助函数 ──────────────────────────────────────────────────────────────────
+
+def _team_colors_for(team_id) -> dict:
+    """按球队ID查真实球队配色+官方logo，用于游戏内动态换肤。"""
+    if not team_id:
+        return get_team_colors(None)
+    t = team_repo.get_by_id(team_id)
+    return get_team_colors(t.abbreviation if t else None, team_id)
+
 
 def _get_season_stats(player_id: int, season_year: int) -> dict:
     with getdb() as conn:
