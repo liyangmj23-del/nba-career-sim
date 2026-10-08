@@ -15,6 +15,7 @@ data/*.html
 # 种子数据(30队+530真实球员)单独存在 data/seed_nba_sim.db，随代码一起发布，
 # 应用首次启动时自动从种子库拷贝出 nba_sim.db，见 database/schema.py。
 data/nba_sim.db
+data/user_sessions/
 
 
 # ── 种子缓存（体积大，用户自己跑生成）────────────────────

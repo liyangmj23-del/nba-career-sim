@@ -2,18 +2,19 @@
 NBA 模拟器 Web 应用 —— Flask 后端。
 所有游戏逻辑来自 simulation/ 和 database/，这里只做路由和 JSON 序列化。
 """
-import sys, json, datetime, random
+import sys, json, datetime, random, os, secrets
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, g
 
 from database.schema import init_database
 from database.repositories.player_repo import PlayerRepository
 from database.repositories.team_repo import TeamRepository
 from database.repositories.save_repo import SaveRepository
 from database.repositories.event_log_repo import EventLogRepository
-from database.connection import db as getdb
+from database.connection import db as getdb, bind_database_path, reset_database_path
+from database.session_store import get_or_create_session_database
 from simulation.week_runner import run_one_week, week_result_to_dict
 from simulation.achievement_tracker import evaluate_season
 from simulation.historical_standing import build_historical_report
@@ -22,7 +23,39 @@ from config import CURRENT_SEASON_YEAR
 from web.team_colors import get_team_colors
 
 app = Flask(__name__)
-app.secret_key = "nba-sim-secret-2025"
+app.secret_key = (
+    os.environ.get("SPACE_SIGNING_SECRET")
+    or os.environ.get("NBA_SIM_SECRET_KEY")
+    or secrets.token_hex(32)
+)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=bool(os.environ.get("SPACE_ID")),
+)
+app.permanent_session_lifetime = datetime.timedelta(days=180)
+
+
+@app.before_request
+def use_private_session_database():
+    if not os.environ.get("SPACE_ID") and os.environ.get("NBA_SIM_ISOLATE_SESSIONS") != "1":
+        return
+
+    session_id = session.get("nba_session_id")
+    if not session_id:
+        session_id = secrets.token_urlsafe(32)
+        session["nba_session_id"] = session_id
+        session.permanent = True
+
+    session_db = get_or_create_session_database(session_id)
+    g.database_path_token = bind_database_path(session_db)
+
+
+@app.teardown_request
+def restore_default_database(_error=None):
+    token = getattr(g, "database_path_token", None)
+    if token is not None:
+        reset_database_path(token)
 
 # ── 初始化 ────────────────────────────────────────────────────────────────────
 init_database()
@@ -832,17 +865,19 @@ def rename_save(save_id):
 # ══════════════════════════════════════════════════════════════════════════════
 # 设置页
 # ══════════════════════════════════════════════════════════════════════════════
-_app_settings = {"difficulty": "normal", "narrative_style": "immersive", "event_freq": "normal"}
+_default_settings = {"difficulty": "normal", "narrative_style": "immersive", "event_freq": "normal"}
 
 @app.route("/settings")
 def settings():
-    return render_template("settings.html", settings=_app_settings)
+    return render_template("settings.html", settings=session.get("game_settings", _default_settings))
 
 @app.route("/settings/save", methods=["POST"])
 def settings_save():
-    _app_settings["difficulty"]       = request.form.get("difficulty", "normal")
-    _app_settings["narrative_style"]  = request.form.get("narrative_style", "immersive")
-    _app_settings["event_freq"]       = request.form.get("event_freq", "normal")
+    session["game_settings"] = {
+        "difficulty": request.form.get("difficulty", "normal"),
+        "narrative_style": request.form.get("narrative_style", "immersive"),
+        "event_freq": request.form.get("event_freq", "normal"),
+    }
     return redirect(url_for("menu"))
 
 
