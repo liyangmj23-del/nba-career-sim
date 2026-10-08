@@ -1,0 +1,28 @@
+name: Deploy full game to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hf-space
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Sync the full game to its public Space
+        uses: huggingface/hub-sync@v0.3.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: liyangmj23-del/nba-career-sim
+          hf_token: ${{ secrets.HF_TOKEN }}
+          space_sdk: docker

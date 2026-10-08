@@ -100,6 +100,26 @@ python run_web.py
 
 ---
 
+## 🌐 零安装浏览器版
+
+### 完整版：朋友点链接直接玩
+
+**[打开完整版 NBA 假如模拟器](https://liyangmj23-del-nba-career-sim.hf.space/)**。这是项目现有的在线游戏入口，直接在手机或电脑浏览器打开即可，无需安装 Python。服务闲置后会休眠，首次打开可能需要等它启动。
+
+完整版包含原项目的随机事件、玩家选择、季后赛和多赛季生涯。在线存档按浏览器会话隔离的更新正在准备发布；完成部署前，暂时别把这个公开入口转发给朋友，以免他们看到同一组存档。
+
+首次发布需要为 GitHub Actions 配置一次 Hugging Face 写入令牌：在 Hugging Face 创建只允许写入此 Space 的细粒度令牌，再到 GitHub 仓库 **Settings → Secrets and variables → Actions → New repository secret**，名称填 `HF_TOKEN`。后续将代码合并到 `main` 后会自动更新在线版。令牌只需保存在 GitHub Secret 里，切勿贴到聊天或提交到代码。
+
+### 可选：下载单文件快速体验版
+
+项目还提供一个单文件浏览器快速体验版：[`docs/index.html`](docs/index.html)。页面内含 530 位球员数据，朋友打开链接即可游玩；也可点击“下载离线版”，保存为 HTML 文件后用浏览器打开。游玩进度保存在当前浏览器，可导入、导出存档。
+
+当前浏览器版包含单赛季模拟、场均数据设定和随机事件选择，属于快速体验版；原版完整事件库、季后赛和多赛季系统尚未迁移。
+
+要生成可分享的在线入口，在 GitHub 仓库的 **Settings → Pages** 中选择 **Deploy from a branch**，分支选 `main`、目录选 `/docs` 并保存。发布完成后，入口地址为 `https://liyangmj23-del.github.io/nba-career-sim/`。
+
+---
+
 ## 🎮 游戏玩法
 
 ### 方式一：验证假如场景（推荐新手）
